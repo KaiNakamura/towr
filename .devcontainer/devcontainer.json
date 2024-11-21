@@ -14,7 +14,14 @@
         "twxs.cmake",
         "ms-iot.vscode-ros",
         "mhutchie.git-graph"
-      ]
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "C_Cpp.clang_format_style": "file",
+        "C_Cpp.clang_format_fallbackStyle": "none",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+      }
     }
   },
   "containerEnv": {
