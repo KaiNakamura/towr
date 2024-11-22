@@ -29,5 +29,10 @@
   
   <!--  Launches the URDF visualizers  --> 
   <include file="$(find xpp_hyq)/launch/all.launch"></include>
+
+  <!-- Launch the Go1 URDF visualizer -->
+  <param name="go1_rviz_urdf_robot_description" command="$(find xacro)/xacro --inorder '$(find go1_description)/xacro/robot.xacro'
+            DEBUG:=$(arg debug)"/>
+  <node name="urdf_visualizer_go1" pkg="towr" type="urdf_visualizer_go1" output="screen"/>
        
 </launch>

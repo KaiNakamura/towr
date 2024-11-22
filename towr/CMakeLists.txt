@@ -4,6 +4,16 @@ project(towr VERSION 1.3.2)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 find_package(ifopt 2.0.1 REQUIRED)
 
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  xpp_vis
+)
+
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
+
 
 ###########
 ## Build ##
@@ -61,10 +71,14 @@ add_library(${PROJECT_NAME} SHARED
   src/spline_holder.cc
   src/euler_converter.cc
   src/phase_durations_observer.cc
+  src/go1/go1leg_inverse_kinematics.cc
+  src/go1/inverse_kinematics_go1.cc
+  src/go1/urdf_visualizer_go1.cc
 )
 target_link_libraries(${PROJECT_NAME} 
   PUBLIC 
     ifopt::ifopt_core
+    ${catkin_LIBRARIES}
 )
 target_include_directories(${PROJECT_NAME} 
   PUBLIC
@@ -72,6 +86,18 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:include>
 )
 
+# Go1 URDF visualizer
+add_executable(urdf_visualizer_go1 src/go1/urdf_visualizer_go1.cc)
+target_link_libraries(urdf_visualizer_go1
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+# install(
+#   TARGETS ${PROJECT_NAME} urdf_visualizer_go1
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
 #############
 ## Testing ##
@@ -111,7 +137,7 @@ endif()
 include(GNUInstallDirs) # for correct libraries locations across platforms
 set(config_package_location "share/${PROJECT_NAME}/cmake") # for .cmake find-scripts installs
 install(
-  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-example 
+  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-example urdf_visualizer_go1
   EXPORT ${PROJECT_NAME}-targets
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
