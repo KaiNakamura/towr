@@ -8,10 +8,10 @@ namespace xpp {
 Joints
 InverseKinematicsGo1::GetAllJointAngles(const EndeffectorsPos& x_B) const
 {
-  Vector3d ee_pos_H; // foothold expressed in hip frame
+  Vector3d ee_pos_H; // Foothold expressed in hip frame
   std::vector<Eigen::VectorXd> q_vec;
 
-  // make sure always exactly 4 elements
+  // Make sure always exactly 4 elements
   auto pos_B = x_B.ToImpl();
   pos_B.resize(4, pos_B.front());
 
@@ -35,7 +35,7 @@ InverseKinematicsGo1::GetAllJointAngles(const EndeffectorsPos& x_B) const
         ee_pos_H = pos_B.at(ee).cwiseProduct(Eigen::Vector3d(-1, -1, 1));
         bend = Go1legInverseKinematics::Backward;
         break;
-      default: // joint angles for this foot do not exist
+      default: // Joint angles for this foot do not exist
         break;
     }
 

@@ -2,90 +2,82 @@
 
 #include <cmath>
 #include <map>
+#include <algorithm>
 
 #include <xpp_states/cartesian_declarations.h>
 
 
 namespace xpp {
 
+double clamp(double val, double min_val, double max_val) {
+  return std::max(min_val, std::min(max_val, val));
+}
 
 Go1legInverseKinematics::Vector3d
 Go1legInverseKinematics::GetJointAngles (const Vector3d& ee_pos_B, KneeBend bend) const
 {
-  double q_HAA_bf, q_HAA_br, q_HFE_br; // rear bend of knees
-  double q_HFE_bf, q_KFE_br, q_KFE_bf; // forward bend of knees
+  // Define the joint angles
+  // HAA = Hip Abduction/Adduction
+  // HFE = Hip Flexion/Extension
+  // KFE = Knee Flexion/Extension
+  double q_HAA, q_HFE, q_KFE;
 
   Eigen::Vector3d xr;
   Eigen::Matrix3d R;
 
-  // translate to the local coordinate of the attachment of the leg
+  // Translate to the local coordinate of the attachment of the leg
   // and flip coordinate signs such that all computations can be done
   // for the front-left leg
   xr = ee_pos_B;
 
-  // compute the HAA angle
-  q_HAA_bf = q_HAA_br = -atan2(xr[Y], -xr[Z]);
+  // Compute the HAA angle
+  q_HAA = -atan2(xr[Y], -xr[Z]);
 
-  // rotate into the HFE coordinate system (rot around X)
-  R << 1.0, 0.0, 0.0, 0.0, cos(q_HAA_bf), -sin(q_HAA_bf), 0.0, sin(q_HAA_bf), cos(q_HAA_bf);
+  // Rotate into the HFE coordinate system (rot around X)
+  R << 1.0, 0.0, 0.0, 0.0, cos(q_HAA), -sin(q_HAA), 0.0, sin(q_HAA), cos(q_HAA);
 
   xr = (R * xr).eval();
 
   // translate into the HFE coordinate system (along Z axis)
-  xr += hfe_to_haa_z;  //distance of HFE to HAA in z direction
+  xr += hfe_to_haa_z;  // distance of HFE to HAA in z direction
 
-  // compute square of length from HFE to foot
-  double tmp1 = pow(xr[X], 2) + pow(xr[Z], 2);
+  // Compute square of length from HFE to foot
+  double hfe_to_haa_squared = pow(xr[X], 2) + pow(xr[Z], 2);
 
-  // compute temporary angles (with reachability check)
-  double lu = length_thigh;  // length of upper leg
-  double ll = length_shank;  // length of lower leg
-  double alpha = atan2(-xr[Z], xr[X]) - 0.5 * M_PI;  //  flip and rotate to match go1 joint definition
+  // Create aliases for the leg lengths
+  double lu = length_thigh; // length of upper leg
+  double ll = length_shank; // length of lower leg
 
-  if (bend == Backward) {
+  // Define alpha based on knee bend
+  double alpha;
+  if (bend == Forward) {
+    alpha = atan2(-xr[Z], xr[X]) - 0.5 * M_PI;
+  } else {
     alpha = atan2(-xr[Z], -xr[X]) - 0.5 * M_PI;
   }
 
-  double some_random_value_for_beta = (pow(lu, 2) + tmp1 - pow(ll, 2)) / (2. * lu * sqrt(tmp1)); // this must be between -1 and 1
-  if (some_random_value_for_beta > 1) {
-    some_random_value_for_beta = 1;
-  }
-  if (some_random_value_for_beta < -1) {
-    some_random_value_for_beta = -1;
-  }
-  double beta = acos(some_random_value_for_beta);
+  // Use law of cosines to find beta
+  double beta = (pow(lu, 2) + hfe_to_haa_squared - pow(ll, 2)) / (2. * lu * sqrt(hfe_to_haa_squared));
+  beta = clamp(beta, -1, 1); // Clamp between -1 and 1
+  beta = acos(beta);
 
-  // compute Hip FE angle
-  q_HFE_bf = q_HFE_br = alpha + beta;
+  // Compute Hip FE angle
+  q_HFE = alpha + beta;
 
-  double some_random_value_for_gamma = (pow(ll, 2) + pow(lu, 2) - tmp1) / (2. * ll * lu);
-  // law of cosines give the knee angle
-  if (some_random_value_for_gamma > 1) {
-    some_random_value_for_gamma = 1;
-  }
-  if (some_random_value_for_gamma < -1) {
-    some_random_value_for_gamma = -1;
-  }
-  double gamma  = acos(some_random_value_for_gamma);
+  // Use law of cosines to find gamma
+  double gamma = (pow(ll, 2) + pow(lu, 2) - hfe_to_haa_squared) / (2. * ll * lu);
+  gamma = clamp(gamma, -1, 1); // Clamp between -1 and 1
+  gamma = acos(gamma);
 
+  // Calculate Knee FE angle
+  q_KFE = gamma - M_PI;
 
-  q_KFE_bf = q_KFE_br = gamma - M_PI;
+  // Enforce limits
+  EnforceLimits(q_HAA, HAA);
+  EnforceLimits(q_HFE, HFE);
+  EnforceLimits(q_KFE, KFE);
 
-  // forward knee bend
-  EnforceLimits(q_HAA_bf, HAA);
-  EnforceLimits(q_HFE_bf, HFE);
-  EnforceLimits(q_KFE_bf, KFE);
-
-  // backward knee bend
-  EnforceLimits(q_HAA_br, HAA);
-  EnforceLimits(q_HFE_br, HFE);
-  EnforceLimits(q_KFE_br, KFE);
-
-  if (bend == Forward) {
-    return Vector3d(q_HAA_bf, q_HFE_bf, q_KFE_bf);
-  } else {
-    return Vector3d(q_HAA_br, q_HFE_br, q_KFE_br);
-  }
+  return Vector3d(q_HAA, q_HFE, q_KFE);
 }
 
 void
