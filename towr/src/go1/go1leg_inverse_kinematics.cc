@@ -24,7 +24,7 @@ Go1legInverseKinematics::GetJointAngles (const Vector3d& ee_pos_B, KneeBend bend
   xr = ee_pos_B;
 
   // compute the HAA angle
-  q_HAA_bf = q_HAA_br = -atan2(xr[Y],-xr[Z]);
+  q_HAA_bf = q_HAA_br = -atan2(xr[Y], -xr[Z]);
 
   // rotate into the HFE coordinate system (rot around X)
   R << 1.0, 0.0, 0.0, 0.0, cos(q_HAA_bf), -sin(q_HAA_bf), 0.0, sin(q_HAA_bf), cos(q_HAA_bf);
@@ -35,16 +35,18 @@ Go1legInverseKinematics::GetJointAngles (const Vector3d& ee_pos_B, KneeBend bend
   xr += hfe_to_haa_z;  //distance of HFE to HAA in z direction
 
   // compute square of length from HFE to foot
-  double tmp1 = pow(xr[X],2)+pow(xr[Z],2);
-
+  double tmp1 = pow(xr[X], 2) + pow(xr[Z], 2);
 
   // compute temporary angles (with reachability check)
   double lu = length_thigh;  // length of upper leg
   double ll = length_shank;  // length of lower leg
-  double alpha = atan2(-xr[Z],xr[X]) - 0.5*M_PI;  //  flip and rotate to match go1 joint definition
+  double alpha = atan2(-xr[Z], xr[X]) - 0.5 * M_PI;  //  flip and rotate to match go1 joint definition
 
+  if (bend == Backward) {
+    alpha = atan2(-xr[Z], -xr[X]) - 0.5 * M_PI;
+  }
 
-  double some_random_value_for_beta = (pow(lu,2)+tmp1-pow(ll,2))/(2.*lu*sqrt(tmp1)); // this must be between -1 and 1
+  double some_random_value_for_beta = (pow(lu, 2) + tmp1 - pow(ll, 2)) / (2. * lu * sqrt(tmp1)); // this must be between -1 and 1
   if (some_random_value_for_beta > 1) {
     some_random_value_for_beta = 1;
   }
@@ -56,8 +58,7 @@ Go1legInverseKinematics::GetJointAngles (const Vector3d& ee_pos_B, KneeBend bend
   // compute Hip FE angle
   q_HFE_bf = q_HFE_br = alpha + beta;
 
-
-  double some_random_value_for_gamma = (pow(ll,2)+pow(lu,2)-tmp1)/(2.*ll*lu);
+  double some_random_value_for_gamma = (pow(ll, 2) + pow(lu, 2) - tmp1) / (2. * ll * lu);
   // law of cosines give the knee angle
   if (some_random_value_for_gamma > 1) {
     some_random_value_for_gamma = 1;
@@ -80,10 +81,11 @@ Go1legInverseKinematics::GetJointAngles (const Vector3d& ee_pos_B, KneeBend bend
   EnforceLimits(q_HFE_br, HFE);
   EnforceLimits(q_KFE_br, KFE);
 
-  if (bend==Forward)
+  if (bend == Forward) {
     return Vector3d(q_HAA_bf, q_HFE_bf, q_KFE_bf);
-  else // backward
-    return Vector3d(q_HAA_br, -q_HFE_br, -q_KFE_br);
+  } else {
+    return Vector3d(q_HAA_br, q_HFE_br, q_KFE_br);
+  }
 }
 
 void
@@ -101,23 +103,23 @@ Go1legInverseKinematics::EnforceLimits (double& val, Go1JointID joint) const
 
   // reduced joint angles for optimization
   static const std::map<Go1JointID, double> max_range {
-    {HAA, haa_max/180.0*M_PI},
-    {HFE, hfe_max/180.0*M_PI},
-    {KFE, kfe_max/180.0*M_PI}
+    {HAA, haa_max / 180.0 * M_PI},
+    {HFE, hfe_max / 180.0 * M_PI},
+    {KFE, kfe_max / 180.0 * M_PI}
   };
 
   // reduced joint angles for optimization
   static const std::map<Go1JointID, double> min_range {
-    {HAA, haa_min/180.0*M_PI},
-    {HFE, hfe_min/180.0*M_PI},
-    {KFE, kfe_min/180.0*M_PI}
+    {HAA, haa_min / 180.0 * M_PI},
+    {HFE, hfe_min / 180.0 * M_PI},
+    {KFE, kfe_min / 180.0 * M_PI}
   };
 
   double max = max_range.at(joint);
-  val = val>max? max : val;
+  val = val > max ? max : val;
 
   double min = min_range.at(joint);
-  val = val<min? min : val;
+  val = val < min ? min : val;
 }
 
 } /* namespace xpp */

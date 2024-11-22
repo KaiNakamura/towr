@@ -15,7 +15,7 @@ InverseKinematicsGo1::GetAllJointAngles(const EndeffectorsPos& x_B) const
   auto pos_B = x_B.ToImpl();
   pos_B.resize(4, pos_B.front());
 
-  for (int ee=0; ee<pos_B.size(); ++ee) {
+  for (int ee = 0; ee < pos_B.size(); ++ee) {
 
     Go1legInverseKinematics::KneeBend bend = Go1legInverseKinematics::Forward;
 
@@ -25,14 +25,14 @@ InverseKinematicsGo1::GetAllJointAngles(const EndeffectorsPos& x_B) const
         ee_pos_H = pos_B.at(ee);
         break;
       case RF:
-        ee_pos_H = pos_B.at(ee).cwiseProduct(Eigen::Vector3d(1,-1,1));
+        ee_pos_H = pos_B.at(ee).cwiseProduct(Eigen::Vector3d(1, -1, 1));
         break;
       case LH:
-        ee_pos_H = pos_B.at(ee).cwiseProduct(Eigen::Vector3d(-1,1,1));
+        ee_pos_H = pos_B.at(ee).cwiseProduct(Eigen::Vector3d(-1, 1, 1));
         bend = Go1legInverseKinematics::Backward;
         break;
       case RH:
-        ee_pos_H = pos_B.at(ee).cwiseProduct(Eigen::Vector3d(-1,-1,1));
+        ee_pos_H = pos_B.at(ee).cwiseProduct(Eigen::Vector3d(-1, -1, 1));
         bend = Go1legInverseKinematics::Backward;
         break;
       default: // joint angles for this foot do not exist
