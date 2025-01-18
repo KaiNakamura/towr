@@ -1,5 +1,5 @@
 # Goal definition
-elevation_mapping_cupy/PlanarTerrain terrain
+convex_plane_decomposition_msgs/PlanarTerrain terrain
 ---
 # Result definition
 int32[] sequence

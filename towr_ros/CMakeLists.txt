@@ -14,8 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   towr
   actionlib
   actionlib_msgs
-  elevation_map_msgs
-  elevation_mapping_cupy
   convex_plane_decomposition_ros
 )
 
