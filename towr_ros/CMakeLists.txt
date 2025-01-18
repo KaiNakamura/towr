@@ -14,6 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
   towr
   actionlib
   actionlib_msgs
+  elevation_map_msgs
+  elevation_mapping_cupy
+  convex_plane_decomposition_ros
 )
 
 ## Generate actions in the 'action' folder
@@ -24,7 +27,7 @@ add_action_files(
 
 ## Generate messages in the 'msg' folder
 add_message_files( FILES TowrCommand.msg )
-generate_messages( DEPENDENCIES std_msgs xpp_msgs actionlib_msgs )
+generate_messages( DEPENDENCIES std_msgs xpp_msgs actionlib_msgs convex_plane_decomposition_msgs )
 
 
 ###################################
@@ -34,7 +37,7 @@ generate_messages( DEPENDENCIES std_msgs xpp_msgs actionlib_msgs )
 catkin_package(
    INCLUDE_DIRS include
    LIBRARIES ${PROJECT_NAME}
-   CATKIN_DEPENDS xpp_states roscpp actionlib_msgs
+   CATKIN_DEPENDS xpp_states roscpp actionlib_msgs convex_plane_decomposition_msgs
    DEPENDS towr
 )
 

@@ -1,5 +1,5 @@
 # Goal definition
-int32 order
+elevation_mapping_cupy/PlanarTerrain terrain
 ---
 # Result definition
 int32[] sequence

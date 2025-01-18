@@ -23,20 +23,34 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     coinor-libipopt-dev \
     libncurses5-dev \
     xterm \
+    liboctomap-dev \
+    ros-noetic-octomap-msgs \
+    ros-noetic-grid-map-rviz-plugin \
+    ros-noetic-pybind11-catkin \
+    libmpfr-dev \
+    libgmp-dev
     # ros-noetic-xpp \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    # && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Xpp
+# Clone Xpp
 RUN cd $CATKIN_WS/src && \
     git clone https://github.com/leggedrobotics/xpp.git
 
-# Install ifopt
+# Clone ifopt
 RUN cd $CATKIN_WS/src && \
     git clone https://github.com/ethz-adrl/ifopt.git
 
-# Install unitree_ros
+# Clone unitree_ros
 RUN cd $CATKIN_WS/src && \
     git clone https://github.com/unitreerobotics/unitree_ros.git
+
+# Clone grid_map
+RUN cd $CATKIN_WS/src && \
+    git clone https://github.com/ANYbotics/grid_map.git
+
+# Clone elevation_mapping_cupy
+RUN cd $CATKIN_WS/src && \
+    git clone https://github.com/leggedrobotics/elevation_mapping_cupy.git
 
 RUN /bin/bash -c "cd $CATKIN_WS && \
     source /opt/ros/$ROS_DISTRO/setup.sh && \
