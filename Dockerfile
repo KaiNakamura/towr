@@ -56,7 +56,7 @@ RUN /bin/bash -c "cd $CATKIN_WS && \
     source /opt/ros/$ROS_DISTRO/setup.sh && \
     catkin init && \
     catkin config -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
-    catkin build xpp go1_description ifopt && \
+    catkin build xpp go1_description ifopt convex_plane_decomposition_ros && \
     source devel/setup.bash"
 
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.sh" >> /root/.bashrc
