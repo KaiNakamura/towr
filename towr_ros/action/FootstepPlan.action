@@ -1,0 +1,8 @@
+# Goal definition
+convex_plane_decomposition_msgs/PlanarTerrain terrain
+---
+# Result definition
+int32[] sequence
+---
+# Feedback
+int32[] sequence

@@ -12,12 +12,20 @@ find_package(catkin REQUIRED COMPONENTS
   xpp_msgs
   xpp_states
   towr
+  actionlib
+  actionlib_msgs
+  convex_plane_decomposition_ros
 )
 
+## Generate actions in the 'action' folder
+add_action_files(
+  DIRECTORY action
+  FILES FootstepPlan.action
+)
 
 ## Generate messages in the 'msg' folder
 add_message_files( FILES TowrCommand.msg )
-generate_messages( DEPENDENCIES std_msgs xpp_msgs )
+generate_messages( DEPENDENCIES std_msgs xpp_msgs actionlib_msgs convex_plane_decomposition_msgs )
 
 
 ###################################
@@ -27,7 +35,7 @@ generate_messages( DEPENDENCIES std_msgs xpp_msgs )
 catkin_package(
    INCLUDE_DIRS include
    LIBRARIES ${PROJECT_NAME}
-   CATKIN_DEPENDS xpp_states roscpp
+   CATKIN_DEPENDS xpp_states roscpp actionlib_msgs convex_plane_decomposition_msgs
    DEPENDS towr
 )
 
@@ -118,6 +126,29 @@ target_link_libraries(rosbag_geom_msg_extractor
   ${catkin_LIBRARIES}
 )
 
+## ROS Action
+
+# Footstep Plan Server
+add_executable(footstep_plan_server src/footstep_plan_server.cc)
+target_link_libraries(
+  footstep_plan_server
+  ${catkin_LIBRARIES}
+)
+add_dependencies(
+  footstep_plan_server
+  ${towr_ros_EXPORTED_TARGETS}
+)
+
+# Footstep Plan Client
+add_executable(footstep_plan_client src/footstep_plan_client.cc)
+target_link_libraries(
+  footstep_plan_client
+  ${catkin_LIBRARIES}
+)
+add_dependencies(
+  footstep_plan_client
+  ${towr_ros_EXPORTED_TARGETS}
+)
 
 #############
 ## Install ##
