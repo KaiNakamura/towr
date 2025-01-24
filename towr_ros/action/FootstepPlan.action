@@ -1,5 +1,5 @@
 # Goal definition
-convex_plane_decomposition_msgs/PlanarTerrain terrain
+int32 order
 ---
 # Result definition
 int32[] sequence

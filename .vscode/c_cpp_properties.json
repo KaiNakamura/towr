@@ -1,0 +1,20 @@
+{
+  "configurations": [
+    {
+        "name": "Linux",
+        "includePath": [
+            "${workspaceFolder}/**",
+            "/opt/ros/noetic/include",
+            "/home/catkin_ws/devel/include",
+            "/home/catkin_ws/src"
+        ],
+        "defines": [],
+        "compilerPath": "/usr/bin/gcc",
+        "cStandard": "c11",
+        "cppStandard": "c++14",
+        "intelliSenseMode": "linux-gcc-x64",
+        "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+    }
+],
+"version": 4
+}
