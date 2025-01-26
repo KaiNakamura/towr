@@ -1,0 +1,5 @@
+geometry_msgs/Pose trunk_pose
+geometry_msgs/Point LF_ee_point
+geometry_msgs/Point RF_ee_point
+geometry_msgs/Point LH_ee_point
+geometry_msgs/Point RH_ee_point
