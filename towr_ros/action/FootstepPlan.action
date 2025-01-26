@@ -1,8 +1,15 @@
-# Goal definition
-int32 order
+### Goal (arguments) definition
+# terrain to traverse
+convex_plane_decomposition_msgs/PlanarTerrain terrain
+# start and goal configurations
+SingleRigidBody start
+SingleRigidBody goal
 ---
-# Result definition
-int32[] sequence
+### Result (return values) definition
+# trajectory containing the generated trajectory at each timestep
+SingleRigidBody[] SRB_trajectory
+# The contact_data for each foot at each timestep
+convex_plane_decomposition_msgs/PlanarRegion[][] contact_data
 ---
-# Feedback
-int32[] sequence
+### Feedback
+# int32[] sequence
