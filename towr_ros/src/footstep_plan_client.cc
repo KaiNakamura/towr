@@ -7,21 +7,21 @@ int main (int argc, char **argv)
 {
   ros::init(argc, argv, "test_footstep_plan");
 
-  // create the action client
-  // true causes the client to spin its own thread
+  // Create the action client
+  // True causes the client to spin its own thread
   actionlib::SimpleActionClient<towr_ros::FootstepPlanAction> ac("footstep_plan", true);
 
   ROS_INFO("Waiting for action server to start.");
-  // wait for the action server to start
+  // Wait for the action server to start
   ac.waitForServer(); //will wait for infinite time
 
   ROS_INFO("Action server started, sending goal.");
-  // send a goal to the action
+  // Send a goal to the action
   towr_ros::FootstepPlanGoal goal;
-  goal.order = 20;
+  // TODO
   ac.sendGoal(goal);
 
-  //wait for the action to return
+  // Wait for the action to return
   bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
 
   if (finished_before_timeout)
@@ -35,6 +35,5 @@ int main (int argc, char **argv)
     ac.cancelGoal();
   }
 
-  //exit
   return 0;
 }
