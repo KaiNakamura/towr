@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <towr_ros/FootstepPlanAction.h>
+#include <towr/terrain/grid_height_map.h>
 
 class FootstepPlanAction
 {

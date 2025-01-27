@@ -1,19 +1,15 @@
-# ROS Action Goal (In this case, the inputs to the footstep planner)
+### Goal (arguments) definition
+# terrain to traverse
 convex_plane_decomposition_msgs/PlanarTerrain terrain
-# TODO: Current robot state
-# TODO: Target robot state
-# Galileo sends whole body state (because all other representations can be derived from it easier (by removing)
+# start and goal configurations
+SingleRigidBody start
+SingleRigidBody goal
 ---
-# ROS Action Result
-# TODO: List of planes over time
-# <unknown type>[] planes
-# TODO: Trajectory, represented as an array of robot states
-# <unknown type>[] trajectory
-
-# Galileo needs some Ax < b constraint
-# See Galileo/resources/go1/Parameters/problem_parameters.txt
-# Ethan said he might change it to whatever works best for us too
+### Result (return values) definition
+# trajectory containing the generated trajectory at each timestep
+SingleRigidBody[] SRB_trajectory
+# The contact_data for each foot at each timestep
+ContactDatum[] contact_data
 ---
-# ROS Action Feedback
-# TODO: Maybe for debug add elapsed time
-# int32 elapsedSeconds
+### Feedback
+# int32[] sequence
