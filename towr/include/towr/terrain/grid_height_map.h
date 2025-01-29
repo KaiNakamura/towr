@@ -1,5 +1,5 @@
-#ifndef GRID_HEIGHTMAP_H_
-#define GRID_HEIGHTMAP_H_
+#ifndef GRID_HEIGHT_MAP_H_
+#define GRID_HEIGHT_MAP_H_
 
 #include "height_map.h"
 #include <Eigen/Dense>

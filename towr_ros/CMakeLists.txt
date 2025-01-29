@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   convex_plane_decomposition_ros
 )
+find_package(cpptrace REQUIRED)
 
 ## Generate actions in the 'action' folder
 add_action_files(
@@ -56,6 +57,7 @@ add_dependencies(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  cpptrace::cpptrace
 )
 
 
@@ -133,6 +135,7 @@ add_executable(footstep_plan_server src/footstep_plan_server.cc)
 target_link_libraries(
   footstep_plan_server
   ${catkin_LIBRARIES}
+  cpptrace::cpptrace
 )
 add_dependencies(
   footstep_plan_server
@@ -144,6 +147,7 @@ add_executable(footstep_plan_client src/footstep_plan_client.cc)
 target_link_libraries(
   footstep_plan_client
   ${catkin_LIBRARIES}
+  cpptrace::cpptrace
 )
 add_dependencies(
   footstep_plan_client

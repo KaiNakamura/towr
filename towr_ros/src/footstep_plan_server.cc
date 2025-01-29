@@ -2,14 +2,15 @@
 #include <actionlib/server/simple_action_server.h>
 #include <towr_ros/FootstepPlanAction.h>
 #include <towr/terrain/grid_height_map.h>
-
-#include <towr/terrain/grid_height_map.h>
-#include <towr/terrain/Grid.h>
+#include <towr/terrain/height_map_from_csv.h>
 #include <towr/nlp_formulation.h>
 #include <ifopt/ipopt_solver.h>
 
 #include <towr/initialization/gait_generator.h>
 #include <towr/models/endeffector_mappings.h>
+
+#include <cpptrace/from_current.hpp>
+#include <boost/stacktrace.hpp>
 
 class FootstepPlanAction
 {
@@ -42,26 +43,32 @@ public:
     // - replace argv arguments with goal arguments
     // - replace std::cout with ROS_INFO, etc
     // - remove unnecessary arguments - gait_type, optimize_gait, etc
-    // - replace formulation.terrain_ = std::make_shared<Grid>(grid_csv); with my implementation (grid_height_map.h)
+    // - replace formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv); with my implementation (grid_height_map.h)
     // - ensure the correct robot model is used
     // - figure out how get output in the correct format (towr_ros::FootstepPlanResult)
     //   - make another function to extract the footstep planes from the SRB trajectory and terrain
 
+    // Some placeholders to get things building
+    bool optimize_gait = true;
+    const std::string grid_csv = "placeholder";
+    float total_duration = 2; // seconds
+
     // Set up the NLP
-    NlpFormulation formulation;
+    towr::NlpFormulation formulation;
 
     // terrain
-    formulation.terrain_ = std::make_shared<Grid>(grid_csv);
+    // TODO: Change to use grid_height_map.h
+    formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv);
 
     // Kinematic limits and dynamic parameters
-    formulation.model_ = RobotModel(RobotModel::MiniCheetah);
+    formulation.model_ = towr::RobotModel(towr::RobotModel::Go1);
 
     // initial position
     auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
-    nominal_stance_B.at(LF) << args->start.LF_ee_point.x, args->start.LF_ee_point.y, args->start.LF_ee_point.z;
-    nominal_stance_B.at(RF) << args->start.RF_ee_point.x, args->start.RF_ee_point.y, args->start.RF_ee_point.z;
-    nominal_stance_B.at(LH) << args->start.LH_ee_point.x, args->start.LH_ee_point.y, args->start.LH_ee_point.z;
-    nominal_stance_B.at(RH) << args->start.RH_ee_point.x, args->start.RH_ee_point.y, args->start.RH_ee_point.z;
+    nominal_stance_B.at(towr::LF) << args->start.LF_ee_point.x, args->start.LF_ee_point.y, args->start.LF_ee_point.z;
+    nominal_stance_B.at(towr::RF) << args->start.RF_ee_point.x, args->start.RF_ee_point.y, args->start.RF_ee_point.z;
+    nominal_stance_B.at(towr::LH) << args->start.LH_ee_point.x, args->start.LH_ee_point.y, args->start.LH_ee_point.z;
+    nominal_stance_B.at(towr::RH) << args->start.RH_ee_point.x, args->start.RH_ee_point.y, args->start.RH_ee_point.z;
     
     // TODO: Can we / do we need to set velocity values for the states?
 
@@ -79,10 +86,10 @@ public:
 
     // Parameters defining contact sequence and default durations. We use
     // a GaitGenerator with some predifined gaits
-    auto gait_gen_ = GaitGenerator::MakeGaitGenerator(4);
+    auto gait_gen_ = towr::GaitGenerator::MakeGaitGenerator(4);
     // TODO: this sould probably be passed in as a default argument or something.
     //       Maybe expose this option as a part of the action goal?
-    auto id_gait = static_cast<GaitGenerator::Combos>(0); // 0=walk, 1=flying trot, 2=pace, 3=bound, 4=gallop
+    auto id_gait = static_cast<towr::GaitGenerator::Combos>(0); // 0=walk, 1=flying trot, 2=pace, 3=bound, 4=gallop
     gait_gen_->SetCombo(id_gait);
     for (int ee = 0; ee < 4; ++ee)
     {
@@ -102,7 +109,7 @@ public:
     // Initialize the nonlinear-programming problem with the variables,
     // constraints and costs.
     ifopt::Problem nlp;
-    SplineHolder solution;
+    towr::SplineHolder solution;
     for (auto c : formulation.GetVariableSets(solution))
         nlp.AddVariableSet(c);
     for (auto c : formulation.GetConstraints(solution))
@@ -128,22 +135,35 @@ public:
 
   void executeCB(const towr_ros::FootstepPlanGoalConstPtr &goal)
   {
-    ROS_INFO("%s: Executing footstep planner", action_name_.c_str());
+    ROS_INFO("%s: Executing", action_name_.c_str());
 
-    try
-    {
+    CPPTRACE_TRY {
       result_ = execute(goal);
-    }
-    catch(const std::exception& e)
-    {
+    } CPPTRACE_CATCH(const std::exception& e) {
+      // ROS_ERROR("%s: Exception caught trace: %s\n%s", action_name_.c_str(), e.what(), cpptrace::from_current_exception());
+      ROS_ERROR("%s: Exception caught trace: %s", action_name_.c_str(), e.what());
+      cpptrace::from_current_exception().print();
       as_.setAborted(result_, e.what());
-      ROS_INFO("%s: Footstep planner aborted", action_name_.c_str());
+      ROS_INFO("%s: Aborted", action_name_.c_str());
       return;
     }
+    // try
+    // {
+    //   result_ = execute(goal);
+    // }
+    // catch(const std::exception& e)
+    // {
+    //   // ROS_ERROR("%s: Exception caught: %s", action_name_.c_str(), e.what());
+
+    //   ROS_ERROR("%s: Exception caught trace: %s\n%s", action_name_.c_str(), e.what(), boost::stacktrace::to_string(boost::stacktrace::stacktrace()).c_str());
+    //   as_.setAborted(result_, e.what());
+    //   ROS_INFO("%s: Aborted", action_name_.c_str());
+    //   return;
+    // }
 
     // Set the action state to succeeded
     as_.setSucceeded(result_);
-    ROS_INFO("%s: Footstep planner succeeded", action_name_.c_str());
+    ROS_INFO("%s: Succeeded", action_name_.c_str());
     return;
   }
 
