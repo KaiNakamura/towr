@@ -20,9 +20,9 @@ private:
     const double eps_ = 0.03;
 
 public:
-    Grid(const convex_plane_decomposition_msgs::PlanarTerrain::ConstPtr& terrain)
+    Grid(const convex_plane_decomposition_msgs::PlanarTerrain& terrain)
     {
-        gridmap_ = terrain->gridmap;
+        gridmap_ = terrain.gridmap;
         ROS_INFO("GridMap received");
     };
 

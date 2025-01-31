@@ -50,7 +50,7 @@ public:
 
     // Some placeholders to get things building
     bool optimize_gait = true;
-    const std::string grid_csv = "placeholder";
+    // const std::string grid_csv = "placeholder";
     float total_duration = 2; // seconds
 
     // Set up the NLP
@@ -58,7 +58,7 @@ public:
 
     // terrain
     // TODO: Change to use grid_height_map.h
-    formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv);
+    formulation.terrain_ = std::make_shared<Grid>(args->terrain);
 
     // Kinematic limits and dynamic parameters
     formulation.model_ = towr::RobotModel(towr::RobotModel::Go1);

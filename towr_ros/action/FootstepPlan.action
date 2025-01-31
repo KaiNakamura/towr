@@ -2,8 +2,8 @@
 # terrain to traverse
 convex_plane_decomposition_msgs/PlanarTerrain terrain
 # start and goal configurations
-SingleRigidBody start
-SingleRigidBody goal
+SingleRigidBody start_state
+SingleRigidBody goal_state
 ---
 ### Result (return values) definition
 # trajectory containing the generated trajectory at each timestep
