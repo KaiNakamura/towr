@@ -128,8 +128,6 @@ target_link_libraries(rosbag_geom_msg_extractor
   ${catkin_LIBRARIES}
 )
 
-## ROS Action
-
 # Footstep Plan Server
 add_executable(footstep_plan_server src/footstep_plan_server.cc)
 target_link_libraries(
@@ -151,6 +149,18 @@ target_link_libraries(
 )
 add_dependencies(
   footstep_plan_client
+  ${towr_ros_EXPORTED_TARGETS}
+)
+
+# Planar Terrain From Bag Publisher
+add_executable(planar_terrain_from_bag_publisher src/planar_terrain_from_bag_publisher.cc)
+target_link_libraries(
+  planar_terrain_from_bag_publisher
+  ${catkin_LIBRARIES}
+  cpptrace::cpptrace
+)
+add_dependencies(
+  planar_terrain_from_bag_publisher
   ${towr_ros_EXPORTED_TARGETS}
 )
 
