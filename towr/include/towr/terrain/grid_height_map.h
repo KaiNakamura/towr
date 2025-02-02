@@ -9,30 +9,26 @@
 #include <ros/ros.h>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
 
-
 class Grid final : public towr::HeightMap
 {
-
 private:
-    Eigen::MatrixXd grid_;
-    grid_map_msgs::GridMap gridmap_;
-    const double res_m_p_cell_ = 0.17;
-    const double eps_ = 0.03;
+    grid_map::GridMap map_;
+    double res_m_p_cell_;
+    double eps_;
 
 public:
-    Grid(const convex_plane_decomposition_msgs::PlanarTerrain::ConstPtr& terrain)
+    Grid(const convex_plane_decomposition_msgs::PlanarTerrain& terrain)
     {
-        gridmap_ = terrain->gridmap;
+        grid_map::GridMapRosConverter::fromMessage(terrain.gridmap, map_);
+        res_m_p_cell_ = map_.getResolution();
+        eps_ = res_m_p_cell_ * 0.176; // Assuming eps_ is a fraction of the resolution
         ROS_INFO("GridMap received");
     };
 
     double GetHeight(double x, double y) const {
-        grid_map::GridMap map;
-        grid_map::GridMapRosConverter::fromMessage(gridmap_, map);
-
         grid_map::Position position(x, y);
-        if (map.isInside(position)) {
-            return map.atPosition("elevation", position);
+        if (map_.isInside(position)) {
+            return map_.atPosition("elevation", position);
         } else {
             throw std::out_of_range("Coordinates are outside the grid map.");
         }
@@ -40,18 +36,19 @@ public:
 
     double GetHeightDerivWrtX(double x, double y) const override
     {
-        const size_t x_cell = static_cast<size_t>(x / res_m_p_cell_);
-        const size_t y_cell = static_cast<size_t>(y / res_m_p_cell_);
-        if ((x_cell + 1 >= grid_.cols()) || (y_cell >= grid_.rows()))
-        {
+        grid_map::Position position(x, y);
+        if (!map_.isInside(position)) {
             return 0.0;
         }
 
-        const double diff = grid_(y_cell, x_cell + 1) - grid_(y_cell, x_cell);
+        grid_map::Position position_right(x + res_m_p_cell_, y);
+        if (!map_.isInside(position_right)) {
+            return 0.0;
+        }
 
-        const double x_start_cell = (x_cell + 1) * res_m_p_cell_;
-        if ((x <= (x_start_cell + eps_ / 2)) && (x >= x_start_cell - eps_ / 2))
-        {
+        const double diff = map_.atPosition("elevation", position_right) - map_.atPosition("elevation", position);
+
+        if ((x <= (position_right.x() + eps_ / 2)) && (x >= position_right.x() - eps_ / 2)) {
             return diff / eps_;
         }
         return 0.0;
@@ -59,18 +56,19 @@ public:
 
     double GetHeightDerivWrtY(double x, double y) const override
     {
-        const size_t x_cell = static_cast<size_t>(x / res_m_p_cell_);
-        const size_t y_cell = static_cast<size_t>(y / res_m_p_cell_);
-        if ((x_cell >= grid_.cols()) || (y_cell + 1 >= grid_.rows()))
-        {
+        grid_map::Position position(x, y);
+        if (!map_.isInside(position)) {
             return 0.0;
         }
 
-        const double diff = grid_(y_cell + 1, x_cell) - grid_(y_cell, x_cell);
+        grid_map::Position position_up(x, y + res_m_p_cell_);
+        if (!map_.isInside(position_up)) {
+            return 0.0;
+        }
 
-        const double y_start_cell = (y_cell + 1) * res_m_p_cell_;
-        if ((y <= (y_start_cell + eps_ / 2)) && (y >= y_start_cell - eps_ / 2))
-        {
+        const double diff = map_.atPosition("elevation", position_up) - map_.atPosition("elevation", position);
+
+        if ((y <= (position_up.y() + eps_ / 2)) && (y >= position_up.y() - eps_ / 2)) {
             return diff / eps_;
         }
         return 0.0;

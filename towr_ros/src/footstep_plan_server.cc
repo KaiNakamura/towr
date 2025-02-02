@@ -50,7 +50,7 @@ public:
 
     // Some placeholders to get things building
     bool optimize_gait = true;
-    const std::string grid_csv = "placeholder";
+    // const std::string grid_csv = "placeholder";
     float total_duration = 2; // seconds
 
     // Set up the NLP
