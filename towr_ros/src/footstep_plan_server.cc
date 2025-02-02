@@ -58,21 +58,23 @@ public:
 
     // terrain
     // TODO: Change to use grid_height_map.h
-    formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv);
+    // formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv);
+    auto terrain_ptr = boost::make_shared<const convex_plane_decomposition_msgs::PlanarTerrain>(args->terrain);
+    formulation.terrain_ = std::make_shared<Grid>(terrain_ptr);
 
     // Kinematic limits and dynamic parameters
     formulation.model_ = towr::RobotModel(towr::RobotModel::Go1);
 
     // initial position
     auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
-    nominal_stance_B.at(towr::LF) << args->start.LF_ee_point.x, args->start.LF_ee_point.y, args->start.LF_ee_point.z;
-    nominal_stance_B.at(towr::RF) << args->start.RF_ee_point.x, args->start.RF_ee_point.y, args->start.RF_ee_point.z;
-    nominal_stance_B.at(towr::LH) << args->start.LH_ee_point.x, args->start.LH_ee_point.y, args->start.LH_ee_point.z;
-    nominal_stance_B.at(towr::RH) << args->start.RH_ee_point.x, args->start.RH_ee_point.y, args->start.RH_ee_point.z;
+    nominal_stance_B.at(towr::LF) << args->start_state.LF_ee_point.x, args->start_state.LF_ee_point.y, args->start_state.LF_ee_point.z;
+    nominal_stance_B.at(towr::RF) << args->start_state.RF_ee_point.x, args->start_state.RF_ee_point.y, args->start_state.RF_ee_point.z;
+    nominal_stance_B.at(towr::LH) << args->start_state.LH_ee_point.x, args->start_state.LH_ee_point.y, args->start_state.LH_ee_point.z;
+    nominal_stance_B.at(towr::RH) << args->start_state.RH_ee_point.x, args->start_state.RH_ee_point.y, args->start_state.RH_ee_point.z;
     
     // TODO: Can we / do we need to set velocity values for the states?
 
-    formulation.initial_base_.lin.at(towr::kPos) << args->start.trunk_pose.position.x, args->start.trunk_pose.position.y, args->start.trunk_pose.position.z;
+    formulation.initial_base_.lin.at(towr::kPos) << args->start_state.trunk_pose.position.x, args->start_state.trunk_pose.position.y, args->start_state.trunk_pose.position.z;
     formulation.initial_base_.ang.at(towr::kPos) << 0, 0, 0; // TODO: how to convert from quaternion to xyz euler angles?
     // TODO: are the XYZ or xyz euler angles?
 
@@ -80,7 +82,7 @@ public:
 
     // desired goal state
     // formulation.final_base_.lin.at(towr::kPos) << x_final, y_final, -nominal_stance_B.front().z() + z_ground;
-    formulation.final_base_.lin.at(towr::kPos) << args->goal.trunk_pose.position.x, args->goal.trunk_pose.position.y, args->goal.trunk_pose.position.z;
+    formulation.final_base_.lin.at(towr::kPos) << args->goal_state.trunk_pose.position.x, args->goal_state.trunk_pose.position.y, args->goal_state.trunk_pose.position.z;
     formulation.final_base_.ang.at(towr::kPos) << 0, 0, 0; // TODO: how to convert from quaternion to xyz euler angles?
     // TODO: are the XYZ or xyz euler angles?
 
