@@ -59,8 +59,9 @@ public:
     // terrain
     // TODO: Change to use grid_height_map.h
     // formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv);
-    auto terrain_ptr = boost::make_shared<const convex_plane_decomposition_msgs::PlanarTerrain>(args->terrain);
-    formulation.terrain_ = std::make_shared<Grid>(terrain_ptr);
+    // auto terrain_ptr = boost::make_shared<const convex_plane_decomposition_msgs::PlanarTerrain>(args->terrain);
+    // formulation.terrain_ = std::make_shared<Grid>(*terrain_ptr);
+    formulation.terrain_ = std::make_shared<Grid>(args->terrain);
 
     // Kinematic limits and dynamic parameters
     formulation.model_ = towr::RobotModel(towr::RobotModel::Go1);

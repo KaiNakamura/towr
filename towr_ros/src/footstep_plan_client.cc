@@ -8,6 +8,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Point.h>
 #include <towr/models/go1/go1_model.h>
+#include <towr/models/examples/hyq_model.h>
 
 geometry_msgs::Pose getStartTrunkPose() {
   geometry_msgs::Pose pose;
@@ -31,7 +32,7 @@ geometry_msgs::Point createEndEffectorPoint(const Eigen::Vector3d& vec) {
 
 geometry_msgs::Pose getGoalTrunkPose() {
   geometry_msgs::Pose pose;
-  pose.position.x = 2.0;
+  pose.position.x = 0.5;
   pose.position.y = 0.0;
   pose.position.z = 0.5;
   pose.orientation.w = 1.0;
@@ -97,6 +98,7 @@ int main(int argc, char **argv)
 
   // Use Go1KinematicModel to get the start and goal states
   towr::Go1KinematicModel kinematic_model;
+  // towr::HyqKinematicModel kinematic_model;
 
   // Define the start state
   towr_ros::SingleRigidBody start_state;

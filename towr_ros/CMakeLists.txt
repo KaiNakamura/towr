@@ -157,10 +157,20 @@ add_executable(planar_terrain_from_bag_publisher src/planar_terrain_from_bag_pub
 target_link_libraries(
   planar_terrain_from_bag_publisher
   ${catkin_LIBRARIES}
-  cpptrace::cpptrace
 )
 add_dependencies(
   planar_terrain_from_bag_publisher
+  ${towr_ros_EXPORTED_TARGETS}
+)
+
+# GridMap Republisher
+add_executable(grid_map_republisher src/grid_map_republisher.cc)
+target_link_libraries(
+  grid_map_republisher
+  ${catkin_LIBRARIES}
+)
+add_dependencies(
+  grid_map_republisher
   ${towr_ros_EXPORTED_TARGETS}
 )
 
