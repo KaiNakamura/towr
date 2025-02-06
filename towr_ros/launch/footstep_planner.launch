@@ -1,0 +1,19 @@
+<launch>
+  <!-- Footstep plan server -->
+  <node pkg="towr_ros" type="footstep_plan_server" name="footstep_plan_server" output="screen" />
+
+  <!-- Footstep plan client -->
+  <!-- <node pkg="towr_ros" type="footstep_plan_client" name="footstep_plan_client" output="screen" /> -->
+
+  <!-- RViz -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d /home/catkin_ws/src/towr/towr_ros/rviz/footstep_planner.rviz" />
+
+  <!-- Static transform publisher -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 1 odom base_link" />
+
+  <!-- Play rosbag in loop -->
+  <node pkg="rosbag" type="play" name="rosbag_play" args="--loop /home/catkin_ws/src/towr/towr_ros/bag/perception_stairs.bag" output="screen" />
+
+  <!-- Grid map republisher -->
+  <node pkg="towr_ros" type="grid_map_republisher" name="grid_map_republisher" output="screen" />
+</launch>
