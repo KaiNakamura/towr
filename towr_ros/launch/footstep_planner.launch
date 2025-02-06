@@ -1,4 +1,7 @@
 <launch>
+  <!-- ros_args.launch -->
+  <arg name="debug" default="false" doc="run with gdb" />
+
   <!-- Footstep plan server -->
   <node pkg="towr_ros" type="footstep_plan_server" name="footstep_plan_server" output="screen" />
 
@@ -16,4 +19,9 @@
 
   <!-- Grid map republisher -->
   <node pkg="towr_ros" type="grid_map_republisher" name="grid_map_republisher" output="screen" />
+
+  <!-- Launch the Go1 URDF visualizer -->
+  <param name="go1_rviz_urdf_robot_description" command="$(find xacro)/xacro --inorder '$(find go1_description)/xacro/robot.xacro'
+            DEBUG:=$(arg debug)"/>
+  <node name="urdf_visualizer_go1" pkg="towr" type="urdf_visualizer_go1" output="screen"/>
 </launch>

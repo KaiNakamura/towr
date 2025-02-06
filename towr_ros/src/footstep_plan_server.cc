@@ -4,10 +4,11 @@
 #include <towr/terrain/grid_height_map.h>
 #include <towr/terrain/height_map_from_csv.h>
 #include <towr/nlp_formulation.h>
-#include <ifopt/ipopt_solver.h>
-
 #include <towr/initialization/gait_generator.h>
 #include <towr/models/endeffector_mappings.h>
+#include <xpp_states/convert.h>
+#include <ifopt/ipopt_solver.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include <cpptrace/from_current.hpp>
 #include <boost/stacktrace.hpp>
@@ -23,12 +24,20 @@ protected:
   towr_ros::FootstepPlanFeedback feedback_;
   towr_ros::FootstepPlanResult result_;
 
+  // Publishers for start and goal poses
+  ros::Publisher start_pose_pub_;
+  ros::Publisher goal_pose_pub_;
+
 public:
 
   FootstepPlanAction(std::string name) :
     as_(nh_, name, boost::bind(&FootstepPlanAction::executeCB, this, _1), false),
     action_name_(name)
   {
+    // Initialize publishers
+    start_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("start_pose", 1);
+    goal_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("goal_pose", 1);
+
     as_.start();
   }
 
@@ -47,6 +56,19 @@ public:
     // - ensure the correct robot model is used
     // - figure out how get output in the correct format (towr_ros::FootstepPlanResult)
     //   - make another function to extract the footstep planes from the SRB trajectory and terrain
+
+    // Publish start and goal poses for visualization
+    geometry_msgs::PoseStamped start_pose_msg;
+    start_pose_msg.header.stamp = ros::Time::now();
+    start_pose_msg.header.frame_id = "odom";
+    start_pose_msg.pose = args->start_state.trunk_pose;
+    start_pose_pub_.publish(start_pose_msg);
+
+    geometry_msgs::PoseStamped goal_pose_msg;
+    goal_pose_msg.header.stamp = ros::Time::now();
+    goal_pose_msg.header.frame_id = "odom";
+    goal_pose_msg.pose = args->goal_state.trunk_pose;
+    goal_pose_pub_.publish(goal_pose_msg);
 
     // Some placeholders to get things building
     bool optimize_gait = true;
@@ -77,7 +99,13 @@ public:
     // TODO: Can we / do we need to set velocity values for the states?
 
     formulation.initial_base_.lin.at(towr::kPos) << args->start_state.trunk_pose.position.x, args->start_state.trunk_pose.position.y, args->start_state.trunk_pose.position.z;
-    formulation.initial_base_.ang.at(towr::kPos) << 0, 0, 0; // TODO: how to convert from quaternion to xyz euler angles?
+    Eigen::Quaterniond q_start(
+      args->start_state.trunk_pose.orientation.w,
+      args->start_state.trunk_pose.orientation.x,
+      args->start_state.trunk_pose.orientation.y,
+      args->start_state.trunk_pose.orientation.z
+    );
+    formulation.initial_base_.ang.at(towr::kPos) = q_start.toRotationMatrix().eulerAngles(0, 1, 2);
     // TODO: are the XYZ or xyz euler angles?
 
     // TODO: can we set the goal ee positions? Do we want to?
@@ -85,7 +113,13 @@ public:
     // desired goal state
     // formulation.final_base_.lin.at(towr::kPos) << x_final, y_final, -nominal_stance_B.front().z() + z_ground;
     formulation.final_base_.lin.at(towr::kPos) << args->goal_state.trunk_pose.position.x, args->goal_state.trunk_pose.position.y, args->goal_state.trunk_pose.position.z;
-    formulation.final_base_.ang.at(towr::kPos) << 0, 0, 0; // TODO: how to convert from quaternion to xyz euler angles?
+    Eigen::Quaterniond q_goal(
+      args->goal_state.trunk_pose.orientation.w,
+      args->goal_state.trunk_pose.orientation.x,
+      args->goal_state.trunk_pose.orientation.y,
+      args->goal_state.trunk_pose.orientation.z
+    );
+    formulation.final_base_.ang.at(towr::kPos) = q_goal.toRotationMatrix().eulerAngles(0, 1, 2);
     // TODO: are the XYZ or xyz euler angles?
 
     // Parameters defining contact sequence and default durations. We use
@@ -124,14 +158,40 @@ public:
     // Choose ifopt solver (IPOPT or SNOPT), set some parameters and solve.
     // solver->SetOption("derivative_test", "first-order");
     // TODO: Fine tune these parameters to suit this use case
+
+    // IPOPT
     auto solver = std::make_shared<ifopt::IpoptSolver>();
     solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
     solver->SetOption("hessian_approximation", "limited-memory");
     solver->SetOption("acceptable_iter", 15);
     solver->SetOption("acceptable_tol", 1e-3);
-    solver->SetOption("max_iter", 500);
-    solver->SetOption("max_cpu_time", 2.0);
+    solver->SetOption("max_iter", 3000);
+    solver->SetOption("max_cpu_time", 10.0);
     solver->SetOption("tol", 1e-4);
+    solver->SetOption("print_level", 5); // For debugging
+    
+    /* Which linear solver to use. Mumps is default because it comes with the
+    * precompiled ubuntu binaries. However, the coin-hsl solvers can be
+    * significantly faster and are free for academic purposes. They can be
+    * downloaded here: http://www.hsl.rl.ac.uk/ipopt/ and must be compiled
+    * into your IPOPT libraries. Then you can use the additional strings:
+    * "ma27, ma57, ma77, ma86, ma97" here.
+    */
+    solver->SetOption("linear_solver", "mumps");
+
+    // SNOPT
+    // TODO: Currently doesn't work
+    // auto solver = std::make_shared<ifopt::SnoptSolver>();
+    // solver->SetOption("Print file", "snopt.out"); // Output file for SNOPT
+    // solver->SetOption("Major iterations limit", 500);
+    // solver->SetOption("Minor iterations limit", 1000);
+    // solver->SetOption("Iterations limit", 1500);
+    // solver->SetOption("Major optimality tolerance", 1e-4);
+    // solver->SetOption("Major feasibility tolerance", 1e-6);
+    // solver->SetOption("Minor feasibility tolerance", 1e-6);
+    // solver->SetOption("Verify level", 0);
+
+    // Solve!
     solver->Solve(nlp);
 
     return towr_ros::FootstepPlanResult();

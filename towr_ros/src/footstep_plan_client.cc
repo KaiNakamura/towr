@@ -12,9 +12,9 @@
 
 geometry_msgs::Pose getStartTrunkPose() {
   geometry_msgs::Pose pose;
-  pose.position.x = 0.0;
+  pose.position.x = -1.0;
   pose.position.y = 0.0;
-  pose.position.z = 0.5;
+  pose.position.z = 0.2;
   pose.orientation.w = 1.0;
   pose.orientation.x = 0.0;
   pose.orientation.y = 0.0;
@@ -32,9 +32,9 @@ geometry_msgs::Point createEndEffectorPoint(const Eigen::Vector3d& vec) {
 
 geometry_msgs::Pose getGoalTrunkPose() {
   geometry_msgs::Pose pose;
-  pose.position.x = 0.5;
+  pose.position.x = 0.0;
   pose.position.y = 0.0;
-  pose.position.z = 0.5;
+  pose.position.z = 0.2;
   pose.orientation.w = 1.0;
   pose.orientation.x = 0.0;
   pose.orientation.y = 0.0;
