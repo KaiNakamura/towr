@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   convex_plane_decomposition_ros
 )
+find_package(cpptrace REQUIRED)
 
 ## Generate actions in the 'action' folder
 add_action_files(
@@ -56,6 +57,7 @@ add_dependencies(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  cpptrace::cpptrace
 )
 
 
@@ -126,13 +128,12 @@ target_link_libraries(rosbag_geom_msg_extractor
   ${catkin_LIBRARIES}
 )
 
-## ROS Action
-
 # Footstep Plan Server
 add_executable(footstep_plan_server src/footstep_plan_server.cc)
 target_link_libraries(
   footstep_plan_server
   ${catkin_LIBRARIES}
+  cpptrace::cpptrace
 )
 add_dependencies(
   footstep_plan_server
@@ -144,9 +145,32 @@ add_executable(footstep_plan_client src/footstep_plan_client.cc)
 target_link_libraries(
   footstep_plan_client
   ${catkin_LIBRARIES}
+  cpptrace::cpptrace
 )
 add_dependencies(
   footstep_plan_client
+  ${towr_ros_EXPORTED_TARGETS}
+)
+
+# Planar Terrain From Bag Publisher
+add_executable(planar_terrain_from_bag_publisher src/planar_terrain_from_bag_publisher.cc)
+target_link_libraries(
+  planar_terrain_from_bag_publisher
+  ${catkin_LIBRARIES}
+)
+add_dependencies(
+  planar_terrain_from_bag_publisher
+  ${towr_ros_EXPORTED_TARGETS}
+)
+
+# GridMap Republisher
+add_executable(grid_map_republisher src/grid_map_republisher.cc)
+target_link_libraries(
+  grid_map_republisher
+  ${catkin_LIBRARIES}
+)
+add_dependencies(
+  grid_map_republisher
   ${towr_ros_EXPORTED_TARGETS}
 )
 

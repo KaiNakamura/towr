@@ -29,7 +29,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-noetic-pybind11-catkin \
     libmpfr-dev \
     libgmp-dev
-    # ros-noetic-xpp \
     # && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Clone Xpp
@@ -51,6 +50,18 @@ RUN cd $CATKIN_WS/src && \
 # Clone elevation_mapping_cupy
 RUN cd $CATKIN_WS/src && \
     git clone https://github.com/leggedrobotics/elevation_mapping_cupy.git
+
+# Install cpptrace
+RUN mkdir repos && \
+    cd repos && \
+    git clone https://github.com/jeremy-rifkin/cpptrace.git && \
+    cd cpptrace && \
+    git checkout v0.7.5 && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    make -j && \
+    sudo make install
 
 RUN /bin/bash -c "cd $CATKIN_WS && \
     source /opt/ros/$ROS_DISTRO/setup.sh && \
