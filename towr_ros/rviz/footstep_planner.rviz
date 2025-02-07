@@ -95,6 +95,38 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz/Pose
+      Color: 0; 255; 0
+      Enabled: true
+      Head Length: 0.03999999910593033
+      Head Radius: 0.03999999910593033
+      Name: StartPose
+      Queue Size: 10
+      Shaft Length: 0.10000000149011612
+      Shaft Radius: 0.019999999552965164
+      Shape: Arrow
+      Topic: /start_pose
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.03999999910593033
+      Head Radius: 0.03999999910593033
+      Name: GoalPose
+      Queue Size: 10
+      Shaft Length: 0.10000000149011612
+      Shaft Radius: 0.019999999552965164
+      Shape: Arrow
+      Topic: /goal_pose
+      Unreliable: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /legged_robot/currentState

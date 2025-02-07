@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     libeigen3-dev \
     coinor-libipopt-dev \
+    # ros-noetic-ifopt \
     libncurses5-dev \
     xterm \
     liboctomap-dev \
