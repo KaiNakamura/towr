@@ -12,6 +12,13 @@
 #include <cpptrace/from_current.hpp>
 #include <boost/stacktrace.hpp>
 
+#include <ros/ros.h>
+#include <nav_msgs/Path.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <towr/variables/spline_holder.h>
+#include <towr/nlp_formulation.h>
+#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
+
 class FootstepPlanAction
 {
 protected:
@@ -22,6 +29,11 @@ protected:
   // create messages that are used to published feedback/result
   towr_ros::FootstepPlanFeedback feedback_;
   towr_ros::FootstepPlanResult result_;
+  ros::Publisher base_path_pub_;
+  ros::Publisher lf_path_pub_;
+  ros::Publisher rf_path_pub_;
+  ros::Publisher lh_path_pub_;
+  ros::Publisher rh_path_pub_;
 
 public:
 
@@ -29,6 +41,11 @@ public:
     as_(nh_, name, boost::bind(&FootstepPlanAction::executeCB, this, _1), false),
     action_name_(name)
   {
+    base_path_pub_ = nh_.advertise<nav_msgs::Path>("/base_path", 1);
+    lf_path_pub_ = nh_.advertise<nav_msgs::Path>("/lf_path", 1);
+    rf_path_pub_ = nh_.advertise<nav_msgs::Path>("/rf_path", 1);
+    lh_path_pub_ = nh_.advertise<nav_msgs::Path>("/lh_path", 1);
+    rh_path_pub_ = nh_.advertise<nav_msgs::Path>("/rh_path", 1);
     as_.start();
   }
 
@@ -36,7 +53,50 @@ public:
   {
   }
 
-  towr_ros::FootstepPlanResult execute(const towr_ros::FootstepPlanGoalConstPtr &args)
+  void publishPaths(const towr::SplineHolder& solution)
+  {
+    nav_msgs::Path base_path, lf_path, rf_path, lh_path, rh_path;
+    base_path.header.frame_id = lf_path.header.frame_id = rf_path.header.frame_id = lh_path.header.frame_id = rh_path.header.frame_id = "base_link";
+    base_path.header.stamp = lf_path.header.stamp = rf_path.header.stamp = lh_path.header.stamp = rh_path.header.stamp = ros::Time::now();
+
+    double dt = 0.1;
+    for (double t = 0.0; t <= solution.base_linear_->GetTotalTime(); t += dt)
+    {
+      geometry_msgs::PoseStamped base_pose, lf_pose, rf_pose, lh_pose, rh_pose;
+      base_pose.pose.position.x = solution.base_linear_->GetPoint(t).p().x();
+      base_pose.pose.position.y = solution.base_linear_->GetPoint(t).p().y();
+      base_pose.pose.position.z = solution.base_linear_->GetPoint(t).p().z();
+      base_path.poses.push_back(base_pose);
+
+      lf_pose.pose.position.x = solution.ee_motion_.at(towr::LF)->GetPoint(t).p().x();
+      lf_pose.pose.position.y = solution.ee_motion_.at(towr::LF)->GetPoint(t).p().y();
+      lf_pose.pose.position.z = solution.ee_motion_.at(towr::LF)->GetPoint(t).p().z();
+      lf_path.poses.push_back(lf_pose);
+
+      rf_pose.pose.position.x = solution.ee_motion_.at(towr::RF)->GetPoint(t).p().x();
+      rf_pose.pose.position.y = solution.ee_motion_.at(towr::RF)->GetPoint(t).p().y();
+      rf_pose.pose.position.z = solution.ee_motion_.at(towr::RF)->GetPoint(t).p().z();
+      rf_path.poses.push_back(rf_pose);
+
+      lh_pose.pose.position.x = solution.ee_motion_.at(towr::LH)->GetPoint(t).p().x();
+      lh_pose.pose.position.y = solution.ee_motion_.at(towr::LH)->GetPoint(t).p().y();
+      lh_pose.pose.position.z = solution.ee_motion_.at(towr::LH)->GetPoint(t).p().z();
+      lh_path.poses.push_back(lh_pose);
+
+      rh_pose.pose.position.x = solution.ee_motion_.at(towr::RH)->GetPoint(t).p().x();
+      rh_pose.pose.position.y = solution.ee_motion_.at(towr::RH)->GetPoint(t).p().y();
+      rh_pose.pose.position.z = solution.ee_motion_.at(towr::RH)->GetPoint(t).p().z();
+      rh_path.poses.push_back(rh_pose);
+    }
+
+    base_path_pub_.publish(base_path);
+    lf_path_pub_.publish(lf_path);
+    rf_path_pub_.publish(rf_path);
+    lh_path_pub_.publish(lh_path);
+    rh_path_pub_.publish(rh_path);
+  }
+
+  towr::SplineHolder execute(const towr_ros::FootstepPlanGoalConstPtr &args)
   {
     // implement code from:
     // https://github.com/opsullivan85/RBE550-Group-Project/blob/main/src/quadruped_drake/towr/trunk_mpc.cpp
@@ -130,19 +190,22 @@ public:
     solver->SetOption("acceptable_iter", 15);
     solver->SetOption("acceptable_tol", 1e-3);
     solver->SetOption("max_iter", 500);
-    solver->SetOption("max_cpu_time", 2.0);
+    solver->SetOption("max_cpu_time", 5.0);
     solver->SetOption("tol", 1e-4);
     solver->Solve(nlp);
 
-    return towr_ros::FootstepPlanResult();
+    // return towr_ros::FootstepPlanResult();
+    return solution;
   }
 
   void executeCB(const towr_ros::FootstepPlanGoalConstPtr &goal)
   {
     ROS_INFO("%s: Executing", action_name_.c_str());
+    result_ = towr_ros::FootstepPlanResult(); // TODO: fill this in with the result of the optimization
+    towr::SplineHolder trajectory;
 
     CPPTRACE_TRY {
-      result_ = execute(goal);
+      trajectory = execute(goal);
     } CPPTRACE_CATCH(const std::exception& e) {
       // ROS_ERROR("%s: Exception caught trace: %s\n%s", action_name_.c_str(), e.what(), cpptrace::from_current_exception());
       ROS_ERROR("%s: Exception caught trace: %s", action_name_.c_str(), e.what());
@@ -151,22 +214,10 @@ public:
       ROS_INFO("%s: Aborted", action_name_.c_str());
       return;
     }
-    // try
-    // {
-    //   result_ = execute(goal);
-    // }
-    // catch(const std::exception& e)
-    // {
-    //   // ROS_ERROR("%s: Exception caught: %s", action_name_.c_str(), e.what());
-
-    //   ROS_ERROR("%s: Exception caught trace: %s\n%s", action_name_.c_str(), e.what(), boost::stacktrace::to_string(boost::stacktrace::stacktrace()).c_str());
-    //   as_.setAborted(result_, e.what());
-    //   ROS_INFO("%s: Aborted", action_name_.c_str());
-    //   return;
-    // }
 
     // Set the action state to succeeded
     as_.setSucceeded(result_);
+    publishPaths(trajectory);
     ROS_INFO("%s: Succeeded", action_name_.c_str());
     return;
   }
