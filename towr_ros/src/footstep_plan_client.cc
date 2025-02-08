@@ -7,6 +7,7 @@
 #include <boost/foreach.hpp>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/PointStamped.h>
 #include <towr/models/go1/go1_model.h>
 #include <towr/models/examples/hyq_model.h>
 
@@ -40,9 +41,30 @@ towr_ros::SingleRigidBody createSingleRigidBodyState(double x, double y, double 
   return state;
 }
 
+void publishEndEffectorPositions(ros::Publisher& pub, const geometry_msgs::Point& point, const std::string& frame_id) {
+  geometry_msgs::PointStamped msg;
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = frame_id;
+  msg.point = point;
+  pub.publish(msg);
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "footstep_plan_client");
+
+  ros::NodeHandle nh;
+
+  // Create publishers for start and goal end-effector positions
+  ros::Publisher lf_start_pub = nh.advertise<geometry_msgs::PointStamped>("lf_start", 1);
+  ros::Publisher rf_start_pub = nh.advertise<geometry_msgs::PointStamped>("rf_start", 1);
+  ros::Publisher lh_start_pub = nh.advertise<geometry_msgs::PointStamped>("lh_start", 1);
+  ros::Publisher rh_start_pub = nh.advertise<geometry_msgs::PointStamped>("rh_start", 1);
+
+  ros::Publisher lf_goal_pub = nh.advertise<geometry_msgs::PointStamped>("lf_goal", 1);
+  ros::Publisher rf_goal_pub = nh.advertise<geometry_msgs::PointStamped>("rf_goal", 1);
+  ros::Publisher lh_goal_pub = nh.advertise<geometry_msgs::PointStamped>("lh_goal", 1);
+  ros::Publisher rh_goal_pub = nh.advertise<geometry_msgs::PointStamped>("rh_goal", 1);
 
   // Create the action client
   // True causes the client to spin its own thread
@@ -95,10 +117,22 @@ int main(int argc, char **argv)
   // towr::HyqKinematicModel kinematic_model;
 
   // Define the start state
-  args.start_state = createSingleRigidBodyState(-1.0, 0.0, 0.2, 1.0, 0.0, 0.0, 0.0, kinematic_model);
+  args.start_state = createSingleRigidBodyState(-1.0, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
 
   // Define the goal state
-  args.goal_state = createSingleRigidBodyState(0.0, 0.0, 0.2, 1.0, 0.0, 0.0, 0.0, kinematic_model);
+  args.goal_state = createSingleRigidBodyState(0.0, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
+
+  // Publish the start end-effector positions
+  publishEndEffectorPositions(lf_start_pub, args.start_state.LF_ee_point, "odom");
+  publishEndEffectorPositions(rf_start_pub, args.start_state.RF_ee_point, "odom");
+  publishEndEffectorPositions(lh_start_pub, args.start_state.LH_ee_point, "odom");
+  publishEndEffectorPositions(rh_start_pub, args.start_state.RH_ee_point, "odom");
+
+  // Publish the goal end-effector positions
+  publishEndEffectorPositions(lf_goal_pub, args.goal_state.LF_ee_point, "odom");
+  publishEndEffectorPositions(rf_goal_pub, args.goal_state.RF_ee_point, "odom");
+  publishEndEffectorPositions(lh_goal_pub, args.goal_state.LH_ee_point, "odom");
+  publishEndEffectorPositions(rh_goal_pub, args.goal_state.RH_ee_point, "odom");
 
   // Send the goal
   ac.sendGoal(args);
