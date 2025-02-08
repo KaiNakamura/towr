@@ -1,0 +1,27 @@
+<launch>
+  <!-- ros_args.launch -->
+  <arg name="debug" default="false" doc="run with gdb" />
+
+  <!-- Footstep plan server -->
+  <node pkg="towr_ros" type="footstep_plan_server" name="footstep_plan_server" output="screen" />
+
+  <!-- Footstep plan client -->
+  <!-- <node pkg="towr_ros" type="footstep_plan_client" name="footstep_plan_client" output="screen" /> -->
+
+  <!-- RViz -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d /home/catkin_ws/src/towr/towr_ros/rviz/footstep_planner.rviz" />
+
+  <!-- Static transform publisher -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 1 odom base_link" />
+
+  <!-- Play rosbag in loop -->
+  <node pkg="rosbag" type="play" name="rosbag_play" args="--loop /home/catkin_ws/src/towr/towr_ros/bag/perception_stairs.bag" output="screen" />
+
+  <!-- Grid map republisher -->
+  <node pkg="towr_ros" type="grid_map_republisher" name="grid_map_republisher" output="screen" />
+
+  <!-- Launch the Go1 URDF visualizer -->
+  <param name="go1_rviz_urdf_robot_description" command="$(find xacro)/xacro --inorder '$(find go1_description)/xacro/robot.xacro'
+            DEBUG:=$(arg debug)"/>
+  <node name="urdf_visualizer_go1" pkg="towr" type="urdf_visualizer_go1" output="screen"/>
+</launch>
