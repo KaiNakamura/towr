@@ -68,7 +68,7 @@ public:
     base_path.header.frame_id = lf_path.header.frame_id = rf_path.header.frame_id = lh_path.header.frame_id = rh_path.header.frame_id = "base_link";
     base_path.header.stamp = lf_path.header.stamp = rf_path.header.stamp = lh_path.header.stamp = rh_path.header.stamp = ros::Time::now();
 
-    double dt = 0.1;
+    double dt = 0.01;
     for (double t = 0.0; t <= solution.base_linear_->GetTotalTime(); t += dt)
     {
       geometry_msgs::PoseStamped base_pose, lf_pose, rf_pose, lh_pose, rh_pose;

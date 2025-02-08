@@ -10,40 +10,34 @@
 #include <towr/models/go1/go1_model.h>
 #include <towr/models/examples/hyq_model.h>
 
-geometry_msgs::Pose getStartTrunkPose() {
+geometry_msgs::Pose createTrunkPose(double x, double y, double z, double w, double ox, double oy, double oz) {
   geometry_msgs::Pose pose;
-  pose.position.x = -1.0;
-  pose.position.y = 0.0;
-  pose.position.z = 0.2;
-  pose.orientation.w = 1.0;
-  pose.orientation.x = 0.0;
-  pose.orientation.y = 0.0;
-  pose.orientation.z = 0.0;
+  pose.position.x = x;
+  pose.position.y = y;
+  pose.position.z = z;
+  pose.orientation.w = w;
+  pose.orientation.x = ox;
+  pose.orientation.y = oy;
+  pose.orientation.z = oz;
   return pose;
 }
 
-geometry_msgs::Point createEndEffectorPoint(const Eigen::Vector3d& vec) {
+geometry_msgs::Point createEndEffectorPoint(const geometry_msgs::Pose& trunk_pose, const Eigen::Vector3d& nominal_stance) {
   geometry_msgs::Point point;
-  point.x = vec.x();
-  point.y = vec.y();
-  point.z = vec.z();
+  point.x = trunk_pose.position.x + nominal_stance.x();
+  point.y = trunk_pose.position.y + nominal_stance.y();
+  point.z = trunk_pose.position.z + nominal_stance.z();
   return point;
 }
 
-geometry_msgs::Pose getGoalTrunkPose() {
-  geometry_msgs::Pose pose;
-  pose.position.x = 0.0;
-  pose.position.y = 0.0;
-  pose.position.z = 0.2;
-  pose.orientation.w = 1.0;
-  pose.orientation.x = 0.0;
-  pose.orientation.y = 0.0;
-  pose.orientation.z = 0.0;
-  return pose;
-}
-
-geometry_msgs::Point getGoalEndEffectorPoint(const Eigen::Vector3d& vec) {
-  return createEndEffectorPoint(vec + Eigen::Vector3d(2.0, 0.0, 0.0));
+towr_ros::SingleRigidBody createSingleRigidBodyState(double x, double y, double z, double w, double ox, double oy, double oz, const towr::KinematicModel& kinematic_model) {
+  towr_ros::SingleRigidBody state;
+  state.trunk_pose = createTrunkPose(x, y, z, w, ox, oy, oz);
+  state.LF_ee_point = createEndEffectorPoint(state.trunk_pose, kinematic_model.GetNominalStanceInBase().at(towr::LF));
+  state.RF_ee_point = createEndEffectorPoint(state.trunk_pose, kinematic_model.GetNominalStanceInBase().at(towr::RF));
+  state.LH_ee_point = createEndEffectorPoint(state.trunk_pose, kinematic_model.GetNominalStanceInBase().at(towr::LH));
+  state.RH_ee_point = createEndEffectorPoint(state.trunk_pose, kinematic_model.GetNominalStanceInBase().at(towr::RH));
+  return state;
 }
 
 int main(int argc, char **argv)
@@ -101,24 +95,10 @@ int main(int argc, char **argv)
   // towr::HyqKinematicModel kinematic_model;
 
   // Define the start state
-  towr_ros::SingleRigidBody start_state;
-  start_state.trunk_pose = getStartTrunkPose();
-  start_state.LF_ee_point = createEndEffectorPoint(kinematic_model.GetNominalStanceInBase().at(towr::LF));
-  start_state.RF_ee_point = createEndEffectorPoint(kinematic_model.GetNominalStanceInBase().at(towr::RF));
-  start_state.LH_ee_point = createEndEffectorPoint(kinematic_model.GetNominalStanceInBase().at(towr::LH));
-  start_state.RH_ee_point = createEndEffectorPoint(kinematic_model.GetNominalStanceInBase().at(towr::RH));
+  args.start_state = createSingleRigidBodyState(-1.0, 0.0, 0.2, 1.0, 0.0, 0.0, 0.0, kinematic_model);
 
   // Define the goal state
-  towr_ros::SingleRigidBody goal_state;
-  goal_state.trunk_pose = getGoalTrunkPose();
-  goal_state.LF_ee_point = getGoalEndEffectorPoint(kinematic_model.GetNominalStanceInBase().at(towr::LF));
-  goal_state.RF_ee_point = getGoalEndEffectorPoint(kinematic_model.GetNominalStanceInBase().at(towr::RF));
-  goal_state.LH_ee_point = getGoalEndEffectorPoint(kinematic_model.GetNominalStanceInBase().at(towr::LH));
-  goal_state.RH_ee_point = getGoalEndEffectorPoint(kinematic_model.GetNominalStanceInBase().at(towr::RH));
-
-  // Set the start and goal states in the args
-  args.start_state = start_state;
-  args.goal_state = goal_state;
+  args.goal_state = createSingleRigidBodyState(0.0, 0.0, 0.2, 1.0, 0.0, 0.0, 0.0, kinematic_model);
 
   // Send the goal
   ac.sendGoal(args);
