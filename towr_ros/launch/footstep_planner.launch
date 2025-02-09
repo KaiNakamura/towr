@@ -20,6 +20,9 @@
   <!-- Grid map republisher -->
   <node pkg="towr_ros" type="grid_map_republisher" name="grid_map_republisher" output="screen" />
 
+  <!-- Planar region republisher -->
+  <node pkg="towr_ros" type="planar_region_republisher" name="planar_region_republisher" output="screen" />
+
   <!-- Launch the Go1 URDF visualizer -->
   <param name="go1_rviz_urdf_robot_description" command="$(find xacro)/xacro --inorder '$(find go1_description)/xacro/robot.xacro'
             DEBUG:=$(arg debug)"/>
