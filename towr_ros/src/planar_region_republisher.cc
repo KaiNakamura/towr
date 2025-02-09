@@ -40,6 +40,12 @@ public:
             marker.color.b = rgb[2];
             marker.color.a = 1.0;
 
+            // Set the orientation to the identity quaternion
+            marker.pose.orientation.x = 0.0;
+            marker.pose.orientation.y = 0.0;
+            marker.pose.orientation.z = 0.0;
+            marker.pose.orientation.w = 1.0;
+
             // Extract plane parameters
             tf::Quaternion q(region.plane_parameters.orientation.x,
                              region.plane_parameters.orientation.y,
@@ -58,7 +64,10 @@ public:
                 geometry_msgs::Point p;
                 p.x = p_3d.x();
                 p.y = p_3d.y();
-                p.z = p_3d.z();
+                // Adjust the z-coordinate slightly to align with the terrain
+                // Not sure why this needs to be done, but otherwise it hovers over the terrain too much
+                // Might have to do with the line thickness
+                p.z = p_3d.z() - 0.02;
                 marker.points.push_back(p);
             }
 
