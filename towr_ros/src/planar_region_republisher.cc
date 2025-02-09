@@ -22,15 +22,16 @@ public:
         visualization_msgs::MarkerArray marker_array;
         int id = 0;
 
+        // Iterate over each planar region
         for (const auto& region : msg->planarRegions) {
             visualization_msgs::Marker marker;
             marker.header.stamp = ros::Time::now();
             marker.header.frame_id = "odom";
             marker.ns = "planar_regions";
-            marker.id = id++;
+            marker.id = id;
             marker.type = visualization_msgs::Marker::LINE_STRIP;
             marker.action = visualization_msgs::Marker::ADD;
-            marker.scale.x = 0.02;
+            marker.scale.x = 0.01;
 
             // Set color based on fixed coloring scheme
             std::vector<float> rgb = getColorByIndex(id);
@@ -46,7 +47,9 @@ public:
                              region.plane_parameters.orientation.w);
             tf::Matrix3x3 R(q);
 
-            for (const auto& point : region.boundary.outer_boundary.points) {
+            // Process the points and close the loop
+            for (size_t i = 0; i <= region.boundary.outer_boundary.points.size(); ++i) {
+                const auto& point = region.boundary.outer_boundary.points[i % region.boundary.outer_boundary.points.size()];
                 tf::Vector3 p_2d(point.x, point.y, 0.0);
                 tf::Vector3 p_3d = R * p_2d + tf::Vector3(region.plane_parameters.position.x,
                                                           region.plane_parameters.position.y,
@@ -59,24 +62,14 @@ public:
                 marker.points.push_back(p);
             }
 
-            // Close the loop
-            if (!region.boundary.outer_boundary.points.empty()) {
-                const auto& first_point = region.boundary.outer_boundary.points.front();
-                tf::Vector3 p_2d(first_point.x, first_point.y, 0.0);
-                tf::Vector3 p_3d = R * p_2d + tf::Vector3(region.plane_parameters.position.x,
-                                                          region.plane_parameters.position.y,
-                                                          region.plane_parameters.position.z);
-
-                geometry_msgs::Point p;
-                p.x = p_3d.x();
-                p.y = p_3d.y();
-                p.z = p_3d.z();
-                marker.points.push_back(p);
-            }
-
+            // Add the marker to the marker array
             marker_array.markers.push_back(marker);
+
+            // Increment id for the next region
+            id++;
         }
 
+        // Publish the marker array
         planar_regions_pub_.publish(marker_array);
     }
 
