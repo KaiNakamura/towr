@@ -419,6 +419,14 @@ Visualization Manager:
       Topic: rh_goal
       Unreliable: false
       Value: false
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: planar_regions
+      Name: MarkerArray
+      Namespaces:
+        planar_regions: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -447,7 +455,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.7923378944396973
+      Distance: 3.9230337142944336
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -503,5 +511,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: 3840
-  Y: 23
+  X: 3848
+  Y: 31

@@ -174,6 +174,17 @@ add_dependencies(
   ${towr_ros_EXPORTED_TARGETS}
 )
 
+# PlanarRegion Republisher
+add_executable(planar_region_republisher src/planar_region_republisher.cc)
+target_link_libraries(
+  planar_region_republisher
+  ${catkin_LIBRARIES}
+)
+add_dependencies(
+  planar_region_republisher
+  ${towr_ros_EXPORTED_TARGETS}
+)
+
 #############
 ## Install ##
 #############
