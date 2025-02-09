@@ -1,1 +1,2 @@
-convex_plane_decomposition_msgs/PlanarRegion[] contact_datum
+convex_plane_decomposition_msgs/PlanarRegion[] contact_set
+int32 duration

@@ -258,6 +258,12 @@ public:
     return solution;
   }
 
+  towr_ros::FootstepPlanResult extractFootstepPlan(const towr::SplineHolder& solution)
+  {
+    // initilize a footstep plan result
+    // leave the trajectory empty for now
+  }
+
   void executeCB(const towr_ros::FootstepPlanGoalConstPtr &goal)
   {
     ROS_INFO("%s: Executing", action_name_.c_str());
@@ -276,9 +282,10 @@ public:
     }
 
     // Set the action state to succeeded
+    result_ = extractFootstepPlan(trajectory);
     as_.setSucceeded(result_);
-    publishPaths(trajectory);
     ROS_INFO("%s: Succeeded", action_name_.c_str());
+    publishPaths(trajectory);
     return;
   }
 
