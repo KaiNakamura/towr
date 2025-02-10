@@ -7,6 +7,7 @@
 #include <towr/initialization/gait_generator.h>
 #include <towr/models/endeffector_mappings.h>
 #include <xpp_states/convert.h>
+#include <xpp_msgs/topic_names.h>
 #include <ifopt/ipopt_solver.h>
 #include <geometry_msgs/PoseStamped.h>
 
@@ -19,10 +20,15 @@
 #include <towr/variables/spline_holder.h>
 #include <towr/nlp_formulation.h>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
+#include <towr_ros/towr_ros_interface.h>
+#include <towr_ros/towr_xpp_ee_map.h>
+
+using XppVec = std::vector<xpp::RobotStateCartesian>;
 
 class FootstepPlanAction
 {
 protected:
+  static constexpr double PLAYBACK_SPEED = 0.5; // Playback speed for urdf visualization
 
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer<towr_ros::FootstepPlanAction> as_; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
@@ -39,6 +45,7 @@ protected:
   // Publishers for start and goal poses
   ros::Publisher start_pose_pub_;
   ros::Publisher goal_pose_pub_;
+  ros::Publisher robot_state_pub_; // Add a publisher for robot state
 
 public:
 
@@ -54,6 +61,7 @@ public:
     // Initialize publishers
     start_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("start_pose", 1);
     goal_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("goal_pose", 1);
+    robot_state_pub_ = nh_.advertise<xpp_msgs::RobotStateCartesian>(xpp_msgs::robot_state_desired, 1); // Initialize the publisher
 
     as_.start();
   }
@@ -103,6 +111,55 @@ public:
     rf_path_pub_.publish(rf_path);
     lh_path_pub_.publish(lh_path);
     rh_path_pub_.publish(rh_path);
+  }
+
+  void publishRobotState(const towr::SplineHolder& solution)
+  {
+    auto trajectory = GetTrajectory(solution);
+
+    ros::Rate rate(100 * PLAYBACK_SPEED);
+    for (const auto& state : trajectory)
+    {
+      xpp_msgs::RobotStateCartesian msg = xpp::Convert::ToRos(state);
+      robot_state_pub_.publish(msg);
+      rate.sleep();
+    }
+  }
+
+  XppVec GetTrajectory(const towr::SplineHolder& solution) const
+  {
+    XppVec trajectory;
+    double t = 0.0;
+    double T = solution.base_linear_->GetTotalTime();
+
+    towr::EulerConverter base_angular(solution.base_angular_);
+
+    while (t <= T + 1e-5)
+    {
+        int n_ee = solution.ee_motion_.size();
+        xpp::RobotStateCartesian state(n_ee);
+
+        state.base_.lin = towr::ToXpp(solution.base_linear_->GetPoint(t));
+
+        state.base_.ang.q = base_angular.GetQuaternionBaseToWorld(t);
+        state.base_.ang.w = base_angular.GetAngularVelocityInWorld(t);
+        state.base_.ang.wd = base_angular.GetAngularAccelerationInWorld(t);
+
+        for (int ee_towr = 0; ee_towr < n_ee; ++ee_towr)
+        {
+            int ee_xpp = towr::ToXppEndeffector(n_ee, ee_towr).first;
+
+            state.ee_contact_.at(ee_xpp) = solution.phase_durations_.at(ee_towr)->IsContactPhase(t);
+            state.ee_motion_.at(ee_xpp) = towr::ToXpp(solution.ee_motion_.at(ee_towr)->GetPoint(t));
+            state.ee_forces_.at(ee_xpp) = solution.ee_force_.at(ee_towr)->GetPoint(t).p();
+        }
+
+        state.t_global_ = t;
+        trajectory.push_back(state);
+        t += 0.01 * PLAYBACK_SPEED;
+    }
+
+    return trajectory;
   }
 
   towr::SplineHolder execute(const towr_ros::FootstepPlanGoalConstPtr &args)
@@ -278,6 +335,7 @@ public:
     // Set the action state to succeeded
     as_.setSucceeded(result_);
     publishPaths(trajectory);
+    publishRobotState(trajectory); // Call the method to publish robot state
     ROS_INFO("%s: Succeeded", action_name_.c_str());
     return;
   }
