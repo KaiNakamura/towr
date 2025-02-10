@@ -244,7 +244,7 @@ public:
     auto gait_gen_ = towr::GaitGenerator::MakeGaitGenerator(4);
     // TODO: this sould probably be passed in as a default argument or something.
     //       Maybe expose this option as a part of the action goal?
-    auto id_gait = static_cast<towr::GaitGenerator::Combos>(0); // 0=walk, 1=flying trot, 2=pace, 3=bound, 4=gallop
+    auto id_gait = static_cast<towr::GaitGenerator::Combos>(1); // 0=walk, 1=flying trot, 2=pace, 3=bound, 4=gallop
     gait_gen_->SetCombo(id_gait);
     for (int ee = 0; ee < 4; ++ee)
     {
