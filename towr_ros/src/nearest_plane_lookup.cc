@@ -31,12 +31,14 @@ double CrossProduct(const Point& O, const Point& A, const Point& B) {
 Polygon ConvertPlanarRegionToPolygon(const convex_plane_decomposition_msgs::PlanarRegion& region) {
     Polygon polygon;
     for (const auto& point : region.boundary.outer_boundary.points) {
+        // TODO: apply isometry transformation here. Check PlanarRegionRepublisher
         polygon.emplace_back(point.x, point.y);
     }
     return polygon;
 }
 
 // Function to check if a point is inside a convex polygon
+// TODO: make sure this works
 bool IsPointInConvexPolygon(const Point& point, const Polygon& polygon) {
     int n = polygon.size();
     if (n < 3) return false; // A polygon must have at least 3 vertices
@@ -69,22 +71,54 @@ public:
         // switch this to a standard for loop so the index can be used
         // for (const auto& region : terrain.planarRegions) {
         for (int i = 0; i < terrain.planarRegions.size(); ++i) {
-            Polygon polygon = ConvertPlanarRegionToPolygon(region);
+            Polygon polygon = ConvertPlanarRegionToPolygon(terrain.planarRegions[i]);
             for (int x = 0; x < nearest_plane_map_.rows(); ++x) {
                 for (int y = 0; y < nearest_plane_map_.cols(); ++y) {
                     // map x, y to world coordinates
                     // does this work? I'm not sure
+                    // TODO: make sure it is row major
                     auto index = Eigen::Vector2d(x, y);
                     Eigen::Vector3d position;
                     terrain.gridMap.getPosition(index, position);
                     if (IsPointInConvexPolygon({position.x(), position.y()}, polygon)) {
-                        nearest_plane_map_(x, y) = i; // TODO: set to the index of the polygon
+                        nearest_plane_map_(x, y) = i;
                     }
                 }
             }
         }
 
-        // BFS out from each cell marked with -1 to find the nearest cell with a value
+        // deep copy nearest_plane_map_
+        Eigen::MatrixXd nearest_plane_map_copy = nearest_plane_map_;
 
+        // GreedyBFS out from each cell marked with -1 to find the nearest cell with a value
+        // use euclidean distance as the cost function
+        // only check values in the plane map copy to not mess up search
+        for (int x = 0; x < nearest_plane_map_.rows(); ++x) {
+            for (int y = 0; y < nearest_plane_map_.cols(); ++y) {
+                if (nearest_plane_map_(x, y) != -1) {break;}
+                auto search_origin = Eigen::Vector2i(x, y);
+                // GreedyBFS with euclidean cost function using a priority queue
+                std::priority_queue<std::pair<double, Eigen::Vector2i>> queue;
+                queue.push({0, Eigen::Vector2i(x, y)});
+                while (!queue.empty()) {
+                    auto [cost, index] = queue.top();
+                    queue.pop();
+                    if (nearest_plane_map_copy(index.x(), index.y()) != -1) {
+                        nearest_plane_map_(x, y) = nearest_plane_map_copy(index.x(), index.y());
+                        break;
+                    }
+                    for (int dx = -1; dx <= 1; ++dx) {
+                        for (int dy = -1; dy <= 1; ++dy) {
+                            if (dx == 0 && dy == 0) continue;
+                            Eigen::Vector2i new_index = index + Eigen::Vector2i(dx, dy);
+                            if (new_index.x() < 0 || new_index.x() >= nearest_plane_map_.rows() || new_index.y() < 0 || new_index.y() >= nearest_plane_map_.cols()) continue;
+                            // Switch to eucidlean distance from the search origin
+                            double new_cost = (new_index - search_origin).norm();
+                            queue.push({new_cost, new_index});
+                        }
+                    }
+                }
+            }
+        }
     }
 }
