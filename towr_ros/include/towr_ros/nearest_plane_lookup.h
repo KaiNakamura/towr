@@ -9,6 +9,7 @@
 #include <xpp_states/convert.h>
 #include <ifopt/ipopt_solver.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <queue>
 
 #include <cpptrace/from_current.hpp>
 #include <boost/stacktrace.hpp>
@@ -71,14 +72,14 @@ class NearestPlaneLookup
 protected:
     Eigen::MatrixXd nearest_plane_map_;
     // store the terrain data
-    convex_plane_decomposition::PlanarTerrain terrain_;
+    convex_plane_decomposition_msgs::PlanarTerrain terrain_;
 
 public:
-    NearestPlaneLookup(const convex_plane_decomposition::PlanarTerrain& terrain)
+    NearestPlaneLookup(const convex_plane_decomposition_msgs::PlanarTerrain& terrain)
     {
         terrain_ = terrain;
         // set nearest_plane_map_ to the same shape as the height map, fill with -1s
-        nearest_plane_map_ = Eigen::MatrixXd::Constant(terrain.gridMap.getLength().x(), terrain.gridMap.getLength().y(), -1);
+        nearest_plane_map_ = Eigen::MatrixXd::Constant(terrain.gridmap.getLength().x(), terrain.gridmap.getLength().y(), -1);
         
         // find all grid cells that are within a polygon. set their value to the index of the polygon
         // switch this to a standard for loop so the index can be used
@@ -92,7 +93,7 @@ public:
                     // TODO: make sure it is row major
                     auto index = Eigen::Vector2d(x, y);
                     Eigen::Vector3d position;
-                    terrain.gridMap.getPosition(index, position);
+                    terrain.gridmap.getPosition(index, position);
                     if (IsPointInConvexPolygon({position.x(), position.y()}, polygon)) {
                         nearest_plane_map_(x, y) = i;
                     }
@@ -145,4 +146,4 @@ public:
         terrain_.getPosition(index, position);
         return nearest_plane_map_(index.x(), index.y());
     }
-}
+};
