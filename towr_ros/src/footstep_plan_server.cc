@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <towr_ros/FootstepPlanAction.h>
+#include <towr_ros/nearest_plane_lookup.h>
 #include <towr/terrain/grid_height_map.h>
 #include <towr/terrain/height_map_from_csv.h>
 #include <towr/nlp_formulation.h>
@@ -258,10 +259,17 @@ public:
     return solution;
   }
 
-  towr_ros::FootstepPlanResult extractFootstepPlan(const towr::SplineHolder& solution)
+  towr_ros::FootstepPlanResult extractFootstepPlan(const towr_ros::FootstepPlanGoalConstPtr &args, const towr::SplineHolder& solution)
   {
-    // initilize a footstep plan result
-    // leave the trajectory empty for now
+    towr_ros::FootstepPlanResult result = towr_ros::FootstepPlanResult();
+    
+    // create a nearest_plane_lookup object
+    NearestPlaneLookup nearest_plane_lookup = NearestPlaneLookup(std::make_shared<Grid>(args->terrain));
+
+    // ???
+    // profit
+
+    return result;
   }
 
   void executeCB(const towr_ros::FootstepPlanGoalConstPtr &goal)
@@ -272,6 +280,7 @@ public:
 
     CPPTRACE_TRY {
       trajectory = execute(goal);
+      result_ = extractFootstepPlan(goal, trajectory);
     } CPPTRACE_CATCH(const std::exception& e) {
       // ROS_ERROR("%s: Exception caught trace: %s\n%s", action_name_.c_str(), e.what(), cpptrace::from_current_exception());
       ROS_ERROR("%s: Exception caught trace: %s", action_name_.c_str(), e.what());
@@ -282,7 +291,6 @@ public:
     }
 
     // Set the action state to succeeded
-    result_ = extractFootstepPlan(trajectory);
     as_.setSucceeded(result_);
     ROS_INFO("%s: Succeeded", action_name_.c_str());
     publishPaths(trajectory);
