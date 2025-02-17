@@ -1,5 +1,0 @@
-std_msgs/Header header
-float64[] durations
-bool initial_contact_state
-float64 min_phase_duration
-float64 max_phase_duration

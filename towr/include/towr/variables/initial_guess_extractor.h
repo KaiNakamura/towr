@@ -4,15 +4,19 @@
 #include <Eigen/Dense>
 #include <functional>
 #include "spline_holder.h"
+#include <towr_msgs/InitialGuessArray.h>
 
 namespace towr {
 
 struct InitialGuess {
+  double time;
   Eigen::VectorXd state;
   Eigen::VectorXd controls;
 };
 
 void ExtractInitialGuess(const SplineHolder& spline_holder, double t, InitialGuess& initial_guess) {
+  initial_guess.time = t;
+
   // Assuming 6D base state (3D position + 3D orientation) and their velocities
   initial_guess.state = Eigen::VectorXd::Zero(12);
   initial_guess.state.segment<3>(0) = spline_holder.base_linear_->GetPoint(t).p(); // Base position
@@ -27,10 +31,21 @@ void ExtractInitialGuess(const SplineHolder& spline_holder, double t, InitialGue
   }
 }
 
-std::function<void(double, InitialGuess&)> CreateInitialGuessFunction(const SplineHolder& spline_holder) {
-  return [&spline_holder](double t, InitialGuess& initial_guess) {
+void ExtractInitialGuesses(const SplineHolder& spline_holder, double dt, towr_msgs::InitialGuessArray& initial_guess_array_msg) {
+  double t = 0.0;
+  while (t <= spline_holder.base_linear_->GetTotalTime()) {
+    InitialGuess initial_guess;
     ExtractInitialGuess(spline_holder, t, initial_guess);
-  };
+
+    towr_msgs::InitialGuess initial_guess_msg;
+    initial_guess_msg.time = initial_guess.time;
+    initial_guess_msg.state = std::vector<double>(initial_guess.state.data(), initial_guess.state.data() + initial_guess.state.size());
+    initial_guess_msg.controls = std::vector<double>(initial_guess.controls.data(), initial_guess.controls.data() + initial_guess.controls.size());
+
+    initial_guess_array_msg.initial_guesses.push_back(initial_guess_msg);
+
+    t += dt;
+  }
 }
 
 } // namespace towr

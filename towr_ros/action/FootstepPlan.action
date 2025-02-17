@@ -7,7 +7,7 @@ SingleRigidBody goal_state
 ---
 ### Result (return values) definition
 # trajectory containing the generated trajectory at each timestep
-SplineHolder trajectory
+InitialGuessArray initial_guesses
 # The contact_data for each foot at each timestep
 ContactDatum[] contact_data
 ---

@@ -28,10 +28,9 @@ add_action_files(
 add_message_files(
   FILES
     ContactDatum.msg
-    NodeSpline.msg
-    PhaseDurations.msg
+    InitialGuess.msg
+    InitialGuessArray.msg
     SingleRigidBody.msg
-    SplineHolder.msg
     TowrCommand.msg
 )
 
@@ -148,7 +147,6 @@ target_link_libraries(
   footstep_plan_server
   ${catkin_LIBRARIES}
   cpptrace::cpptrace
-  ifopt::ifopt_ipopt
 )
 add_dependencies(
   footstep_plan_server
@@ -161,7 +159,6 @@ target_link_libraries(
   footstep_plan_client
   ${catkin_LIBRARIES}
   cpptrace::cpptrace
-  ifopt::ifopt_ipopt
 )
 add_dependencies(
   footstep_plan_client

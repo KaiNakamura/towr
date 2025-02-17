@@ -336,8 +336,8 @@ public:
       return;
     }
 
-    // Convert the SplineHolder to a ROS message
-    result_.trajectory = towr_ros::SplineHolderRosWrapper::ToRosMessage(trajectory);
+    // Collect and set initial guesses
+    towr::ExtractInitialGuesses(trajectory, 0.01, result_.initial_guesses);
 
     // Set the action state to succeeded
     as_.setSucceeded(result_);
