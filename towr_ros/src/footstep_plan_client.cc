@@ -10,6 +10,7 @@
 #include <geometry_msgs/PointStamped.h>
 #include <towr/models/go1/go1_model.h>
 #include <towr/models/examples/hyq_model.h>
+#include <towr_ros/InitialGuessArray.h>
 
 geometry_msgs::Pose createTrunkPose(double x, double y, double z, double w, double ox, double oy, double oz) {
   geometry_msgs::Pose pose;
@@ -65,6 +66,9 @@ int main(int argc, char **argv)
   ros::Publisher rf_goal_pub = nh.advertise<geometry_msgs::PointStamped>("rf_goal", 1);
   ros::Publisher lh_goal_pub = nh.advertise<geometry_msgs::PointStamped>("lh_goal", 1);
   ros::Publisher rh_goal_pub = nh.advertise<geometry_msgs::PointStamped>("rh_goal", 1);
+
+  // Create a publisher for the initial guesses
+  ros::Publisher initial_guess_pub = nh.advertise<towr_ros::InitialGuessArray>("initial_guesses", 1);
 
   // Create the action client
   // True causes the client to spin its own thread
@@ -144,6 +148,12 @@ int main(int argc, char **argv)
   {
     actionlib::SimpleClientGoalState state = ac.getState();
     ROS_INFO("Action finished: %s", state.toString().c_str());
+
+    // Get the result
+    towr_ros::FootstepPlanResultConstPtr result = ac.getResult();
+
+    // Publish the initial guesses
+    initial_guess_pub.publish(result->initial_guesses);
   }
   else
   {

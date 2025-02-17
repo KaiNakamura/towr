@@ -1,1 +1,1 @@
-towr_msgs/InitialGuess[] initial_guesses
+towr_ros/InitialGuess[] initial_guesses

@@ -22,10 +22,7 @@
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
 #include <towr_ros/towr_ros_interface.h>
 #include <towr_ros/towr_xpp_ee_map.h>
-
-#include <towr_ros/SplineHolder.h>
-#include <towr_ros/spline_holder_ros_conversion.h>
-#include <towr_ros/spline_holder_ros_wrapper.h>
+#include <towr/variables/initial_guess_extractor.h>
 
 using XppVec = std::vector<xpp::RobotStateCartesian>;
 
