@@ -25,9 +25,23 @@ add_action_files(
 )
 
 ## Generate messages in the 'msg' folder
-add_message_files( FILES TowrCommand.msg ContactDatum.msg SingleRigidBody.msg)
-generate_messages( DEPENDENCIES std_msgs xpp_msgs actionlib_msgs convex_plane_decomposition_msgs )
+add_message_files(
+  FILES
+    ContactDatum.msg
+    NodeSpline.msg
+    PhaseDurations.msg
+    SingleRigidBody.msg
+    SplineHolder.msg
+    TowrCommand.msg
+)
 
+generate_messages(
+  DEPENDENCIES
+    std_msgs
+    xpp_msgs
+    actionlib_msgs
+    convex_plane_decomposition_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -134,6 +148,7 @@ target_link_libraries(
   footstep_plan_server
   ${catkin_LIBRARIES}
   cpptrace::cpptrace
+  ifopt::ifopt_ipopt
 )
 add_dependencies(
   footstep_plan_server
@@ -146,6 +161,7 @@ target_link_libraries(
   footstep_plan_client
   ${catkin_LIBRARIES}
   cpptrace::cpptrace
+  ifopt::ifopt_ipopt
 )
 add_dependencies(
   footstep_plan_client
