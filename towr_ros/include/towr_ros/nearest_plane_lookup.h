@@ -10,6 +10,7 @@
 #include <ifopt/ipopt_solver.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <queue>
+#include <set>
 
 #include <cpptrace/from_current.hpp>
 #include <boost/stacktrace.hpp>
@@ -21,6 +22,8 @@
 #include <towr/nlp_formulation.h>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
 #include <tf/transform_datatypes.h>
+#include <grid_map_ros/grid_map_ros.hpp>
+#include <grid_map_msgs/GridMap.h>
 
 using Point = std::pair<double, double>;
 using Polygon = std::vector<Point>;
@@ -67,19 +70,38 @@ bool IsPointInConvexPolygon(const Point& point, const Polygon& polygon) {
     return is_inside;
 }
 
+// Custom comparator for Eigen::Vector2i
+struct CompareEigenVector2i {
+    bool operator()(const Eigen::Vector2i& a, const Eigen::Vector2i& b) const {
+        return std::tie(a.x(), a.y()) < std::tie(b.x(), b.y());
+    }
+};
+
+// Custom comparator for std::pair<double, Eigen::Vector2i>
+struct ComparePair {
+    bool operator()(const std::pair<double, Eigen::Vector2i>& a, const std::pair<double, Eigen::Vector2i>& b) const {
+        return a.first > b.first;
+    }
+};
+
 class NearestPlaneLookup
 {
 protected:
     Eigen::MatrixXd nearest_plane_map_;
     // store the terrain data
-    convex_plane_decomposition_msgs::PlanarTerrain terrain_;
+    grid_map::GridMap grid_map_;
 
 public:
     NearestPlaneLookup(const convex_plane_decomposition_msgs::PlanarTerrain& terrain)
     {
-        terrain_ = terrain;
+
+        // Convert grid_map_msgs::GridMap to grid_map::GridMap
+        grid_map::GridMap grid_map;
+        grid_map::GridMapRosConverter::fromMessage(terrain.gridmap, grid_map);
+        grid_map_ = grid_map;
+
         // set nearest_plane_map_ to the same shape as the height map, fill with -1s
-        nearest_plane_map_ = Eigen::MatrixXd::Constant(terrain.gridmap.getLength().x(), terrain.gridmap.getLength().y(), -1);
+        nearest_plane_map_ = Eigen::MatrixXd::Constant(grid_map.getLength().x(), grid_map.getLength().y(), -1);
         
         // find all grid cells that are within a polygon. set their value to the index of the polygon
         // switch this to a standard for loop so the index can be used
@@ -91,9 +113,9 @@ public:
                     // map x, y to world coordinates
                     // does this work? I'm not sure
                     // TODO: make sure it is row major
-                    auto index = Eigen::Vector2d(x, y);
-                    Eigen::Vector3d position;
-                    terrain.gridmap.getPosition(index, position);
+                    const grid_map::Index index(x, y);
+                    grid_map::Position position;
+                    grid_map_.getPosition(index, position);
                     if (IsPointInConvexPolygon({position.x(), position.y()}, polygon)) {
                         nearest_plane_map_(x, y) = i;
                     }
@@ -112,14 +134,15 @@ public:
                 if (nearest_plane_map_(x, y) != -1) {break;}
                 auto search_origin = Eigen::Vector2i(x, y);
                 // GreedyBFS with euclidean cost function using a priority queue
-                std::priority_queue<std::pair<double, Eigen::Vector2i>> queue;
+                std::priority_queue<std::pair<double, Eigen::Vector2i>, std::vector<std::pair<double, Eigen::Vector2i>>, ComparePair> queue;
                 // set of visited nodes
-                auto visited = std::set<Eigen::Vector2i>();
+                std::set<Eigen::Vector2i, CompareEigenVector2i> visited;
                 queue.push({0, Eigen::Vector2i(x, y)});
                 while (!queue.empty()) {
                     auto [cost, index] = queue.top();
                     queue.pop();
                     if (visited.count(index) > 0) {continue;}
+                    visited.insert(index);
                     if (nearest_plane_map_copy(index.x(), index.y()) != -1) {
                         nearest_plane_map_(x, y) = nearest_plane_map_copy(index.x(), index.y());
                         break;
@@ -129,7 +152,7 @@ public:
                             if (dx == 0 && dy == 0) continue;
                             Eigen::Vector2i new_index = index + Eigen::Vector2i(dx, dy);
                             if (new_index.x() < 0 || new_index.x() >= nearest_plane_map_.rows() || new_index.y() < 0 || new_index.y() >= nearest_plane_map_.cols()) continue;
-                            // Switch to eucidlean distance from the search origin
+                            // Switch to euclidean distance from the search origin
                             double new_cost = (new_index - search_origin).norm();
                             queue.push({new_cost, new_index});
                         }
@@ -139,11 +162,11 @@ public:
         }
     }
 
-    int GetNearestPlaneIndex(const Eigen::Vector3d& position) const
+    int GetNearestPlaneIndex(const grid_map::Position position) const
     {
         // map position to grid coordinates
-        Eigen::Vector2d index;
-        terrain_.getPosition(index, position);
+        grid_map::Index index;
+        grid_map_.getIndex(position, index);
         return nearest_plane_map_(index.x(), index.y());
     }
 };

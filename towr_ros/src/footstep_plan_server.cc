@@ -264,7 +264,7 @@ public:
     towr_ros::FootstepPlanResult result = towr_ros::FootstepPlanResult();
     
     // create a nearest_plane_lookup object
-    NearestPlaneLookup nearest_plane_lookup = NearestPlaneLookup(std::make_shared<Grid>(args->terrain));
+    NearestPlaneLookup nearest_plane_lookup = NearestPlaneLookup(args->terrain);
 
     // ???
     // profit
