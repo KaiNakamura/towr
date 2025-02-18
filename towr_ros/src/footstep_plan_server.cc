@@ -10,16 +10,13 @@
 #include <xpp_states/convert.h>
 #include <ifopt/ipopt_solver.h>
 #include <geometry_msgs/PoseStamped.h>
-
+#include <nav_msgs/Path.h>
+#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
+#include <tf/transform_datatypes.h>
+#include <grid_map_ros/grid_map_ros.hpp>
+#include <grid_map_msgs/GridMap.h>
 #include <cpptrace/from_current.hpp>
 #include <boost/stacktrace.hpp>
-
-#include <ros/ros.h>
-#include <nav_msgs/Path.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <towr/variables/spline_holder.h>
-#include <towr/nlp_formulation.h>
-#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
 
 class FootstepPlanAction
 {
@@ -266,6 +263,16 @@ public:
     // create a nearest_plane_lookup object
     NearestPlaneLookup nearest_plane_lookup = NearestPlaneLookup(args->terrain);
 
+    auto LF_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.LF_ee_point.x, args->start_state.LF_ee_point.y));
+    auto RF_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.RF_ee_point.x, args->start_state.RF_ee_point.y));
+    auto LH_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.LH_ee_point.x, args->start_state.LH_ee_point.y));
+    auto RH_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.RH_ee_point.x, args->start_state.RH_ee_point.y));
+
+    // publish the start planes with ros info
+    ROS_INFO("Start plane for LF: %d", LF_start_plane);
+    ROS_INFO("Start plane for RF: %d", RF_start_plane);
+    ROS_INFO("Start plane for LH: %d", LH_start_plane);
+    ROS_INFO("Start plane for RH: %d", RH_start_plane);
     // ???
     // profit
 
