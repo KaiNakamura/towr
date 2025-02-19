@@ -1,2 +1,2 @@
-convex_plane_decomposition_msgs/PlanarRegion[] contact_set
-int32 duration
+int32[] contact_set
+float64 duration

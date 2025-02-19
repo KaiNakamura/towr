@@ -1,3 +1,6 @@
+#ifndef TOWR_ROS_NEAREST_PLANE_LOOKUP_H_
+#define TOWR_ROS_NEAREST_PLANE_LOOKUP_H_ 
+
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <towr_ros/FootstepPlanAction.h>
@@ -24,6 +27,8 @@
 #include <tf/transform_datatypes.h>
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_msgs/GridMap.h>
+
+namespace towr {
 
 using Point = std::pair<double, double>;
 using Polygon = std::vector<Point>;
@@ -170,3 +175,7 @@ public:
         return nearest_plane_map_(index.x(), index.y());
     }
 };
+
+} // namespace towr
+
+#endif /* TOWR_ROS_NEAREST_PLANE_LOOKUP_H_ */
