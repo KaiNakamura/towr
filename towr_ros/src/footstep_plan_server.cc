@@ -22,6 +22,7 @@
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
 #include <towr_ros/towr_ros_interface.h>
 #include <towr_ros/towr_xpp_ee_map.h>
+#include <towr/variables/initial_guess_extractor.h>
 
 using XppVec = std::vector<xpp::RobotStateCartesian>;
 
@@ -33,19 +34,20 @@ protected:
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer<towr_ros::FootstepPlanAction> as_; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
   std::string action_name_;
-  // create messages that are used to published feedback/result
+
+  // Create messages that are used to published feedback/result
   towr_ros::FootstepPlanFeedback feedback_;
   towr_ros::FootstepPlanResult result_;
+
+  // Publishers
   ros::Publisher base_path_pub_;
   ros::Publisher lf_path_pub_;
   ros::Publisher rf_path_pub_;
   ros::Publisher lh_path_pub_;
   ros::Publisher rh_path_pub_;
-
-  // Publishers for start and goal poses
   ros::Publisher start_pose_pub_;
   ros::Publisher goal_pose_pub_;
-  ros::Publisher robot_state_pub_; // Add a publisher for robot state
+  ros::Publisher robot_state_pub_;
 
 public:
 
@@ -53,12 +55,12 @@ public:
     as_(nh_, name, boost::bind(&FootstepPlanAction::executeCB, this, _1), false),
     action_name_(name)
   {
+    // Initialize publishers
     base_path_pub_ = nh_.advertise<nav_msgs::Path>("/base_path", 1);
     lf_path_pub_ = nh_.advertise<nav_msgs::Path>("/lf_path", 1);
     rf_path_pub_ = nh_.advertise<nav_msgs::Path>("/rf_path", 1);
     lh_path_pub_ = nh_.advertise<nav_msgs::Path>("/lh_path", 1);
     rh_path_pub_ = nh_.advertise<nav_msgs::Path>("/rh_path", 1);
-    // Initialize publishers
     start_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("start_pose", 1);
     goal_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("goal_pose", 1);
     robot_state_pub_ = nh_.advertise<xpp_msgs::RobotStateCartesian>(xpp_msgs::robot_state_desired, 1); // Initialize the publisher
@@ -318,19 +320,21 @@ public:
   void executeCB(const towr_ros::FootstepPlanGoalConstPtr &goal)
   {
     ROS_INFO("%s: Executing", action_name_.c_str());
-    result_ = towr_ros::FootstepPlanResult(); // TODO: fill this in with the result of the optimization
+    result_ = towr_ros::FootstepPlanResult(); // Initialize the result
     towr::SplineHolder trajectory;
 
     CPPTRACE_TRY {
       trajectory = execute(goal);
     } CPPTRACE_CATCH(const std::exception& e) {
-      // ROS_ERROR("%s: Exception caught trace: %s\n%s", action_name_.c_str(), e.what(), cpptrace::from_current_exception());
       ROS_ERROR("%s: Exception caught trace: %s", action_name_.c_str(), e.what());
       cpptrace::from_current_exception().print();
       as_.setAborted(result_, e.what());
       ROS_INFO("%s: Aborted", action_name_.c_str());
       return;
     }
+
+    // Collect and set initial guesses
+    towr::ExtractInitialGuesses(trajectory, 0.01, result_.initial_guesses);
 
     // Set the action state to succeeded
     as_.setSucceeded(result_);
