@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <towr_ros/FootstepPlanAction.h>
+#include <towr_ros/nearest_plane_lookup.h>
 #include <towr/terrain/grid_height_map.h>
 #include <towr/terrain/height_map_from_csv.h>
 #include <towr/nlp_formulation.h>
@@ -10,7 +11,11 @@
 #include <xpp_msgs/topic_names.h>
 #include <ifopt/ipopt_solver.h>
 #include <geometry_msgs/PoseStamped.h>
-
+#include <nav_msgs/Path.h>
+#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
+#include <tf/transform_datatypes.h>
+#include <grid_map_ros/grid_map_ros.hpp>
+#include <grid_map_msgs/GridMap.h>
 #include <cpptrace/from_current.hpp>
 #include <boost/stacktrace.hpp>
 
@@ -317,10 +322,27 @@ public:
     return solution;
   }
 
-  towr_ros::FootstepPlanResult extractFootstepPlan(const towr::SplineHolder& solution)
+  towr_ros::FootstepPlanResult extractFootstepPlan(const towr_ros::FootstepPlanGoalConstPtr &args, const towr::SplineHolder& solution)
   {
-    // initilize a footstep plan result
-    // leave the trajectory empty for now
+    towr_ros::FootstepPlanResult result = towr_ros::FootstepPlanResult();
+    
+    // create a nearest_plane_lookup object
+    NearestPlaneLookup nearest_plane_lookup = NearestPlaneLookup(args->terrain);
+
+    auto LF_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.LF_ee_point.x, args->start_state.LF_ee_point.y));
+    auto RF_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.RF_ee_point.x, args->start_state.RF_ee_point.y));
+    auto LH_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.LH_ee_point.x, args->start_state.LH_ee_point.y));
+    auto RH_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.RH_ee_point.x, args->start_state.RH_ee_point.y));
+
+    // publish the start planes with ros info
+    ROS_INFO("Start plane for LF: %d", LF_start_plane);
+    ROS_INFO("Start plane for RF: %d", RF_start_plane);
+    ROS_INFO("Start plane for LH: %d", LH_start_plane);
+    ROS_INFO("Start plane for RH: %d", RH_start_plane);
+    // ???
+    // profit
+
+    return result;
   }
 
   void executeCB(const towr_ros::FootstepPlanGoalConstPtr &goal)
@@ -331,6 +353,7 @@ public:
 
     CPPTRACE_TRY {
       trajectory = execute(goal);
+      result_ = extractFootstepPlan(goal, trajectory);
     } CPPTRACE_CATCH(const std::exception& e) {
       ROS_ERROR("%s: Exception caught trace: %s", action_name_.c_str(), e.what());
       cpptrace::from_current_exception().print();
@@ -343,7 +366,6 @@ public:
     towr::ExtractInitialGuesses(trajectory, 0.01, result_.initial_guesses);
 
     // Set the action state to succeeded
-    result_ = extractFootstepPlan(trajectory);
     as_.setSucceeded(result_);
 
     publishPaths(trajectory);
