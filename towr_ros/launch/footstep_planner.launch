@@ -9,13 +9,16 @@
   <!-- <node pkg="towr_ros" type="footstep_plan_client" name="footstep_plan_client" output="screen" /> -->
 
   <!-- RViz -->
-  <node pkg="rviz" type="rviz" name="rviz" args="-d /home/catkin_ws/src/towr/towr_ros/rviz/footstep_planner.rviz" />
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find towr_ros)/rviz/footstep_planner.rviz" />
 
-  <!-- Static transform publisher -->
+  <!-- Static transform publishers -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 1 odom base_link" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_odom_to_world" args="0 0 0 0 0 0 1 odom world" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_world_to_base" args="0 0 0 0 0 0 1 world base" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_base_to_go1_des" args="0 0 0 0 0 0 1 base go1_des" />
 
   <!-- Play rosbag in loop -->
-  <node pkg="rosbag" type="play" name="rosbag_play" args="--loop /home/catkin_ws/src/towr/towr_ros/bag/perception_stairs.bag" output="screen" />
+  <node pkg="rosbag" type="play" name="rosbag_play" args="--loop $(find towr_ros)/bag/perception_stairs.bag" output="screen" />
 
   <!-- Grid map republisher -->
   <node pkg="towr_ros" type="grid_map_republisher" name="grid_map_republisher" output="screen" />

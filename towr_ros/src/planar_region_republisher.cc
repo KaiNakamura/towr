@@ -97,7 +97,7 @@ private:
             case 5: return {0.5, 0.0, 0.5}; // Purple
             case 6: return {1.0, 0.75, 0.8}; // Pink
             case 7: return {0.6, 0.3, 0.0}; // Brown
-            default: return {0.5, 0.5, 0.5}; // Grey
+            default: return {0.5, 0.5, 0.5}; // Gray
         }
     }
 };

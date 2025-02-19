@@ -25,9 +25,22 @@ add_action_files(
 )
 
 ## Generate messages in the 'msg' folder
-add_message_files( FILES TowrCommand.msg ContactDatum.msg SingleRigidBody.msg)
-generate_messages( DEPENDENCIES std_msgs xpp_msgs actionlib_msgs convex_plane_decomposition_msgs )
+add_message_files(
+  FILES
+    ContactDatum.msg
+    InitialGuess.msg
+    InitialGuessArray.msg
+    SingleRigidBody.msg
+    TowrCommand.msg
+)
 
+generate_messages(
+  DEPENDENCIES
+    std_msgs
+    xpp_msgs
+    actionlib_msgs
+    convex_plane_decomposition_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
