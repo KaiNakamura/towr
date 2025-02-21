@@ -71,10 +71,10 @@ void ExtractFootstepPlan(const towr_ros::FootstepPlanGoalConstPtr &args, const t
   // TODO: Are we freeing this anywhere?
   NearestPlaneLookup nearest_plane_lookup = NearestPlaneLookup(args->terrain);
 
-  auto LF_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.LF_ee_point.x, args->start_state.LF_ee_point.y));
-  auto RF_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.RF_ee_point.x, args->start_state.RF_ee_point.y));
-  auto LH_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.LH_ee_point.x, args->start_state.LH_ee_point.y));
-  auto RH_start_plane = nearest_plane_lookup.GetNearestPlaneIndex(grid_map::Position(args->start_state.RH_ee_point.x, args->start_state.RH_ee_point.y));
+  auto LF_start_plane = nearest_plane_lookup.GetNearestPlaneIndex((Eigen::VectorXd(2) << args->start_state.LF_ee_point.x, args->start_state.LF_ee_point.y).finished());
+  auto RF_start_plane = nearest_plane_lookup.GetNearestPlaneIndex((Eigen::VectorXd(2) << args->start_state.RF_ee_point.x, args->start_state.RF_ee_point.y).finished());
+  auto LH_start_plane = nearest_plane_lookup.GetNearestPlaneIndex((Eigen::VectorXd(2) << args->start_state.LH_ee_point.x, args->start_state.LH_ee_point.y).finished());
+  auto RH_start_plane = nearest_plane_lookup.GetNearestPlaneIndex((Eigen::VectorXd(2) << args->start_state.RH_ee_point.x, args->start_state.RH_ee_point.y).finished());
 
   // Publish the start planes with ros info
   ROS_INFO("Start plane for LF: %d", LF_start_plane);
@@ -113,12 +113,7 @@ void ExtractFootstepPlan(const towr_ros::FootstepPlanGoalConstPtr &args, const t
       int nearest_plane_index = -1; // Default to -1 if the end effector is in the air
       if (state.ee_contact_.at(ee_contact)) {
         // Get the nearest plane index for the current end effector
-        nearest_plane_index = nearest_plane_lookup.GetNearestPlaneIndex(
-          grid_map::Position(
-            state.ee_motion_.at(ee_contact).p_.x(),
-            state.ee_motion_.at(ee_contact).p_.y()
-          )
-        );
+        nearest_plane_index = nearest_plane_lookup.GetNearestPlaneIndex(state.ee_motion_.at(ee_contact).p_);
       }
 
       contact_datum.contact_set.push_back(nearest_plane_index);
