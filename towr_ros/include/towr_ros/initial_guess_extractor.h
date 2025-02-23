@@ -33,11 +33,10 @@ void ExtractInitialGuess(const SplineHolder& spline_holder, double t, InitialGue
   }
 }
 
-void ExtractInitialGuesses(const SplineHolder& spline_holder, double dt, towr_ros::InitialGuessArray& initial_guess_array_msg) {
-  double t = 0.0;
-  while (t <= spline_holder.base_linear_->GetTotalTime()) {
+void ExtractInitialGuesses(const towr_ros::FootstepPlanGoalConstPtr &args, const SplineHolder& spline_holder, towr_ros::InitialGuessArray& initial_guess_array_msg) {
+  for (auto time : args->state_sample_times) {
     InitialGuess initial_guess;
-    ExtractInitialGuess(spline_holder, t, initial_guess);
+    ExtractInitialGuess(spline_holder, time, initial_guess);
 
     towr_ros::InitialGuess initial_guess_msg;
     initial_guess_msg.time = initial_guess.time;
@@ -45,8 +44,6 @@ void ExtractInitialGuesses(const SplineHolder& spline_holder, double dt, towr_ro
     initial_guess_msg.controls = std::vector<double>(initial_guess.controls.data(), initial_guess.controls.data() + initial_guess.controls.size());
 
     initial_guess_array_msg.initial_guesses.push_back(initial_guess_msg);
-
-    t += dt;
   }
 }
 
