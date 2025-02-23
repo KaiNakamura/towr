@@ -1,9 +1,9 @@
-#ifndef TOWR_TOWR_INCLUDE_TOWR_VARIABLES_INITIAL_GUESS_EXTRACTOR_H_
-#define TOWR_TOWR_INCLUDE_TOWR_VARIABLES_INITIAL_GUESS_EXTRACTOR_H_
+#ifndef TOWR_ROS_INITIAL_GUESS_EXTRACTOR_H_
+#define TOWR_ROS_INITIAL_GUESS_EXTRACTOR_H_ 
 
 #include <Eigen/Dense>
 #include <functional>
-#include "spline_holder.h"
+#include <towr/variables/spline_holder.h>
 #include <towr_ros/InitialGuessArray.h>
 
 namespace towr {
@@ -52,4 +52,4 @@ void ExtractInitialGuesses(const SplineHolder& spline_holder, double dt, towr_ro
 
 } // namespace towr
 
-#endif /* TOWR_TOWR_INCLUDE_TOWR_VARIABLES_INITIAL_GUESS_EXTRACTOR_H_ */
+#endif /* TOWR_ROS_INITIAL_GUESS_EXTRACTOR_H_ */

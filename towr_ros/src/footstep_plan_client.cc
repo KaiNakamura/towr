@@ -67,6 +67,9 @@ int main(int argc, char **argv)
   ros::Publisher lh_goal_pub = nh.advertise<geometry_msgs::PointStamped>("lh_goal", 1);
   ros::Publisher rh_goal_pub = nh.advertise<geometry_msgs::PointStamped>("rh_goal", 1);
 
+  // Create a publisher for the footstep plan
+  ros::Publisher footstep_plan_pub = nh.advertise<towr_ros::FootstepPlan>("footstep_plan", 1);
+
   // Create a publisher for the initial guesses
   ros::Publisher initial_guess_pub = nh.advertise<towr_ros::InitialGuessArray>("initial_guesses", 1);
 
@@ -121,7 +124,7 @@ int main(int argc, char **argv)
   // towr::HyqKinematicModel kinematic_model;
 
   // Define the start state
-  args.start_state = createSingleRigidBodyState(-1.0, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
+  args.start_state = createSingleRigidBodyState(1.0, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
 
   // Define the goal state
   args.goal_state = createSingleRigidBodyState(0.0, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
@@ -151,6 +154,9 @@ int main(int argc, char **argv)
 
     // Get the result
     towr_ros::FootstepPlanResultConstPtr result = ac.getResult();
+
+    // Publish the footstep plan
+    footstep_plan_pub.publish(result->footstep_plan);
 
     // Publish the initial guesses
     initial_guess_pub.publish(result->initial_guesses);

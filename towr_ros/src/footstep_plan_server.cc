@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <towr_ros/FootstepPlanAction.h>
+#include <towr_ros/nearest_plane_lookup.h>
 #include <towr/terrain/grid_height_map.h>
 #include <towr/terrain/height_map_from_csv.h>
 #include <towr/nlp_formulation.h>
@@ -10,7 +11,11 @@
 #include <xpp_msgs/topic_names.h>
 #include <ifopt/ipopt_solver.h>
 #include <geometry_msgs/PoseStamped.h>
-
+#include <nav_msgs/Path.h>
+#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
+#include <tf/transform_datatypes.h>
+#include <grid_map_ros/grid_map_ros.hpp>
+#include <grid_map_msgs/GridMap.h>
 #include <cpptrace/from_current.hpp>
 #include <boost/stacktrace.hpp>
 
@@ -22,13 +27,14 @@
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
 #include <towr_ros/towr_ros_interface.h>
 #include <towr_ros/towr_xpp_ee_map.h>
-#include <towr/variables/initial_guess_extractor.h>
-
-using XppVec = std::vector<xpp::RobotStateCartesian>;
+#include <towr_ros/initial_guess_extractor.h>
+#include <towr_ros/footstep_plan_extractor.h>
+#include <towr_ros/FootstepPlan.h>
 
 class FootstepPlanAction
 {
 protected:
+  static constexpr double TIME_HORIZON = 2; // Seconds
   static constexpr double PLAYBACK_SPEED = 0.5; // Playback speed for urdf visualization
 
   ros::NodeHandle nh_;
@@ -117,51 +123,16 @@ public:
 
   void publishRobotState(const towr::SplineHolder& solution)
   {
-    auto trajectory = GetTrajectory(solution);
-
+    // Match dt of trajectory and playback rate
     ros::Rate rate(100 * PLAYBACK_SPEED);
+    auto trajectory = towr::GetTrajectory(solution, 0.01 * PLAYBACK_SPEED);
+
     for (const auto& state : trajectory)
     {
       xpp_msgs::RobotStateCartesian msg = xpp::Convert::ToRos(state);
       robot_state_pub_.publish(msg);
       rate.sleep();
     }
-  }
-
-  XppVec GetTrajectory(const towr::SplineHolder& solution) const
-  {
-    XppVec trajectory;
-    double t = 0.0;
-    double T = solution.base_linear_->GetTotalTime();
-
-    towr::EulerConverter base_angular(solution.base_angular_);
-
-    while (t <= T + 1e-5)
-    {
-        int n_ee = solution.ee_motion_.size();
-        xpp::RobotStateCartesian state(n_ee);
-
-        state.base_.lin = towr::ToXpp(solution.base_linear_->GetPoint(t));
-
-        state.base_.ang.q = base_angular.GetQuaternionBaseToWorld(t);
-        state.base_.ang.w = base_angular.GetAngularVelocityInWorld(t);
-        state.base_.ang.wd = base_angular.GetAngularAccelerationInWorld(t);
-
-        for (int ee_towr = 0; ee_towr < n_ee; ++ee_towr)
-        {
-            int ee_xpp = towr::ToXppEndeffector(n_ee, ee_towr).first;
-
-            state.ee_contact_.at(ee_xpp) = solution.phase_durations_.at(ee_towr)->IsContactPhase(t);
-            state.ee_motion_.at(ee_xpp) = towr::ToXpp(solution.ee_motion_.at(ee_towr)->GetPoint(t));
-            state.ee_forces_.at(ee_xpp) = solution.ee_force_.at(ee_towr)->GetPoint(t).p();
-        }
-
-        state.t_global_ = t;
-        trajectory.push_back(state);
-        t += 0.01 * PLAYBACK_SPEED;
-    }
-
-    return trajectory;
   }
 
   towr::SplineHolder execute(const towr_ros::FootstepPlanGoalConstPtr &args)
@@ -192,7 +163,6 @@ public:
     // Some placeholders to get things building
     bool optimize_gait = true;
     // const std::string grid_csv = "placeholder";
-    float total_duration = 2; // seconds
 
     // Set up the NLP
     towr::NlpFormulation formulation;
@@ -250,7 +220,7 @@ public:
     gait_gen_->SetCombo(id_gait);
     for (int ee = 0; ee < 4; ++ee)
     {
-        formulation.params_.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
+        formulation.params_.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(TIME_HORIZON, ee));
         formulation.params_.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
     }
 
@@ -321,10 +291,10 @@ public:
   {
     ROS_INFO("%s: Executing", action_name_.c_str());
     result_ = towr_ros::FootstepPlanResult(); // Initialize the result
-    towr::SplineHolder trajectory;
+    towr::SplineHolder solution;
 
     CPPTRACE_TRY {
-      trajectory = execute(goal);
+      solution = execute(goal);
     } CPPTRACE_CATCH(const std::exception& e) {
       ROS_ERROR("%s: Exception caught trace: %s", action_name_.c_str(), e.what());
       cpptrace::from_current_exception().print();
@@ -333,13 +303,16 @@ public:
       return;
     }
 
-    // Collect and set initial guesses
-    towr::ExtractInitialGuesses(trajectory, 0.01, result_.initial_guesses);
+    // With the solution, extract initial guesses and footstep plan
+    towr::ExtractInitialGuesses(solution, 0.01, result_.initial_guesses);
+    towr::ExtractFootstepPlan(goal, solution, TIME_HORIZON, result_.footstep_plan);
 
     // Set the action state to succeeded
     as_.setSucceeded(result_);
-    publishPaths(trajectory);
-    publishRobotState(trajectory); // Call the method to publish robot state
+
+    publishPaths(solution);
+    publishRobotState(solution);
+
     ROS_INFO("%s: Succeeded", action_name_.c_str());
     return;
   }

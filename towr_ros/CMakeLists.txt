@@ -28,6 +28,7 @@ add_action_files(
 add_message_files(
   FILES
     ContactDatum.msg
+    FootstepPlan.msg
     InitialGuess.msg
     InitialGuessArray.msg
     SingleRigidBody.msg
