@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN cd $CATKIN_WS/src && \
     git clone https://github.com/leggedrobotics/xpp.git
 
-# Clone ifopt
+# Clone Ifopt
 RUN cd $CATKIN_WS/src && \
     git clone https://github.com/ethz-adrl/ifopt.git
 
@@ -73,3 +73,22 @@ RUN /bin/bash -c "cd $CATKIN_WS && \
 
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.sh" >> /root/.bashrc
 RUN echo "source /home/$CATKIN_WS/devel/setup.bash" >> /root/.bashrc
+
+# Snopt
+ARG SNOPT_PATH=null
+ADD ${SNOPT_PATH} /home/snopt
+ENV SNOPT_DIR=/home/snopt
+
+ARG SNOPT_LICENSE=null
+ADD ${SNOPT_LICENSE} /home/licenses
+ENV SNOPT_LICENSE=/home/licenses/${SNOPT_LICENSE}
+
+# Change Snopt directory structure to work with Ifopt
+RUN mkdir -p /home/snopt/include /home/snopt/lib && \
+    mv /home/snopt/snopt.h /home/snopt/snoptProblem.hpp /home/snopt/snopt_cwrap.h /home/snopt/sqopt.h /home/snopt/sqoptProblem.hpp /home/snopt/sqopt_cwrap.h /home/snopt/include && \
+    mv /home/snopt/libsnopt7_cpp.a /home/snopt/libsnopt7_cpp.so /home/snopt/lib
+
+# Build Ifopt with Snopt
+RUN cd $CATKIN_WS/src/ifopt && \
+    mkdir build && cd build \
+    cmake -DBUILD_SNOPT=ON ..

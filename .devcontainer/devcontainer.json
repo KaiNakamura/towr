@@ -2,7 +2,11 @@
   "name": "Development Container for towr",
   "privileged": true,
   "build": {
-    "dockerfile": "../Dockerfile"
+    "dockerfile": "../Dockerfile",
+    "args": {
+      "SNOPT_PATH": "libsnopt7_cpp",
+      "SNOPT_LICENSE": "snopt7.lic"
+    }
   },
   "workspaceFolder": "/home/catkin_ws/src/towr",
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/catkin_ws/src/towr,type=bind",
