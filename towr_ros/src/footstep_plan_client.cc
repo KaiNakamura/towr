@@ -124,10 +124,10 @@ int main(int argc, char **argv)
   // towr::HyqKinematicModel kinematic_model;
 
   // Define the start state
-  args.start_state = createSingleRigidBodyState(1.0, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
+  args.start_state = createSingleRigidBodyState(-0.1, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
 
   // Define the goal state
-  args.goal_state = createSingleRigidBodyState(0.0, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
+  args.goal_state = createSingleRigidBodyState(0.1, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
 
   // Publish the start end-effector positions
   publishEndEffectorPositions(lf_start_pub, args.start_state.LF_ee_point, "odom");

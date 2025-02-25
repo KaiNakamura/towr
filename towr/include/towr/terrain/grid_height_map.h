@@ -30,7 +30,7 @@ public:
         if (map_.isInside(position)) {
             return map_.atPosition("elevation", position);
         } else {
-            throw std::out_of_range("Coordinates are outside the grid map.");
+            throw std::out_of_range("Coordinates (" + std::to_string(x) + ", " + std::to_string(y) + ") are outside the grid map.");
         }
     }
 

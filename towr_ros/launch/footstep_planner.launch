@@ -18,7 +18,10 @@
   <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_base_to_go1_des" args="0 0 0 0 0 0 1 base go1_des" />
 
   <!-- Play rosbag in loop -->
-  <node pkg="rosbag" type="play" name="rosbag_play" args="--loop $(find towr_ros)/bag/perception_stairs.bag" output="screen" />
+  <node pkg="rosbag" type="play" name="rosbag_play" 
+        args="--loop $(find towr_ros)/bag/perception_stairs2.bag
+              --topics /convex_plane_decomposition_ros/planar_terrain" 
+        output="screen" />
 
   <!-- Grid map republisher -->
   <node pkg="towr_ros" type="grid_map_republisher" name="grid_map_republisher" output="screen" />
