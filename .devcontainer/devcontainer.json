@@ -29,10 +29,9 @@
     }
   },
   "containerEnv": {
-    "DISPLAY": "host.docker.internal:0", // Use the host's DISPLAY environment variable
+    "DISPLAY": "host.docker.internal:0" // Use the host's DISPLAY environment variable
   },
   "mounts": [
     "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached" // Retain for hardware acceleration
-  ],
-  "runArgs": ["--env-file",".devcontainer/devcontainer.env"]
+  ]
 }

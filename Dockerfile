@@ -76,16 +76,8 @@ RUN mkdir -p /home/snopt/include /home/snopt/lib && \
     mv /home/snopt/libsnopt7_cpp.a /home/snopt/libsnopt7_cpp.so /home/snopt/lib && \
     ln -s /home/snopt/lib/libsnopt7_cpp.so /home/snopt/lib/libsnopt7.so
 
-# # Snopt from AMPL
-# # Install full bundle (includes AMPL and all solvers)
-# RUN cd /opt/ && curl -OL https://ampl.com/dl/amplce/ampl.linux64.tgz && \
-#     tar oxzvf ampl.linux64.tgz && rm ampl.linux64.tgz
-
-# # Add installation directory to the environment variable PATH
-# ENV PATH="/opt/ampl.linux-intel64/:${PATH}"
-
 # Ifopt
-RUN cd $CATKIN_WS/src && \
+RUN cd repos && \
     git clone https://github.com/KaiNakamura/ifopt.git && \
     cd ifopt && \
     mkdir build && \
@@ -98,7 +90,7 @@ RUN /bin/bash -c "cd $CATKIN_WS && \
     source /opt/ros/$ROS_DISTRO/setup.sh && \
     catkin init && \
     catkin config -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
-    catkin build xpp go1_description ifopt convex_plane_decomposition_ros && \
+    catkin build xpp go1_description convex_plane_decomposition_ros && \
     source devel/setup.bash"
 
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.sh" >> /root/.bashrc
