@@ -10,6 +10,7 @@
 #include <xpp_states/convert.h>
 #include <xpp_msgs/topic_names.h>
 #include <ifopt/ipopt_solver.h>
+#include <ifopt/snopt_solver.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Path.h>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
@@ -248,29 +249,20 @@ public:
     // solver->SetOption("derivative_test", "first-order");
     // TODO: Fine tune these parameters to suit this use case
 
-    // IPOPT
-    auto solver = std::make_shared<ifopt::IpoptSolver>();
-    solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
-    solver->SetOption("hessian_approximation", "limited-memory");
-    solver->SetOption("acceptable_iter", 15);
-    solver->SetOption("acceptable_tol", 1e-3);
-    solver->SetOption("max_iter", 500);
-    solver->SetOption("max_cpu_time", 5.0);
-    solver->SetOption("tol", 1e-4);
-    solver->SetOption("print_level", 5); // For debugging
-    
-    /* Which linear solver to use. Mumps is default because it comes with the
-    * precompiled ubuntu binaries. However, the coin-hsl solvers can be
-    * significantly faster and are free for academic purposes. They can be
-    * downloaded here: http://www.hsl.rl.ac.uk/ipopt/ and must be compiled
-    * into your IPOPT libraries. Then you can use the additional strings:
-    * "ma27, ma57, ma77, ma86, ma97" here.
-    */
-    solver->SetOption("linear_solver", "mumps");
+    // Ipopt
+    // auto solver = std::make_shared<ifopt::IpoptSolver>();
+    // solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
+    // solver->SetOption("hessian_approximation", "limited-memory");
+    // solver->SetOption("acceptable_iter", 15);
+    // solver->SetOption("acceptable_tol", 1e-3);
+    // solver->SetOption("max_iter", 500);
+    // solver->SetOption("max_cpu_time", 5.0);
+    // solver->SetOption("tol", 1e-4);
+    // solver->SetOption("print_level", 5); // For debugging
+    // solver->SetOption("linear_solver", "mumps"); // Note: Mumps is default but is slow
 
-    // SNOPT
-    // TODO: Currently doesn't work
-    // auto solver = std::make_shared<ifopt::SnoptSolver>();
+    // Snopt
+    auto solver = std::make_shared<ifopt::SnoptSolver>();
     // solver->SetOption("Print file", "snopt.out"); // Output file for SNOPT
     // solver->SetOption("Major iterations limit", 500);
     // solver->SetOption("Minor iterations limit", 1000);
@@ -283,7 +275,6 @@ public:
     // Solve!
     solver->Solve(nlp);
 
-    // return towr_ros::FootstepPlanResult();
     return solution;
   }
 
