@@ -4,6 +4,7 @@ convex_plane_decomposition_msgs/PlanarTerrain terrain
 # start and goal configurations
 SingleRigidBody start_state
 SingleRigidBody goal_state
+float64[] state_sample_times
 ---
 ### Result (return values) definition
 # trajectory containing the generated trajectory at each timestep
