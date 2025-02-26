@@ -8,70 +8,54 @@
 #include <Eigen/Core>
 #include <ros/ros.h>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
+#include <limits>
+
+// #define GRID_HEIGHT_MAP_H_THROW_ON_OUT_OF_RANGE
 
 class Grid final : public towr::HeightMap
 {
 private:
     grid_map::GridMap map_;
-    double res_m_p_cell_;
-    double eps_;
+    double eps_; // value used to calculate the derivative
 
 public:
     Grid(const convex_plane_decomposition_msgs::PlanarTerrain& terrain)
     {
         grid_map::GridMapRosConverter::fromMessage(terrain.gridmap, map_);
-        res_m_p_cell_ = map_.getResolution();
-        eps_ = res_m_p_cell_ * 0.176; // Assuming eps_ is a fraction of the resolution
+        eps_ = map_.getResolution() / 6.0;
         ROS_INFO("GridMap received");
     };
 
     double GetHeight(double x, double y) const {
+        // Note that the height interpolation method here will change the behavior of the
+        // derivative calculation
         grid_map::Position position(x, y);
-        if (map_.isInside(position)) {
-            return map_.atPosition("elevation", position);
-        } else {
-            throw std::out_of_range("Coordinates (" + std::to_string(x) + ", " + std::to_string(y) + ") are outside the grid map.");
+
+        #ifdef GRID_HEIGHT_MAP_H_THROW_ON_OUT_OF_RANGE
+            return map_.atPosition("elevation", position, grid_map::InterpolationMethods::INTER_LINEAR); 
+        #endif
+
+        float height;
+        try{
+            height = map_.atPosition("elevation", position, grid_map::InterpolationMethods::INTER_LINEAR); 
+        } catch (const std::out_of_range& e) {
+            height = std::numeric_limits<float>::max();
         }
+        return height;
     }
 
     double GetHeightDerivWrtX(double x, double y) const override
     {
-        grid_map::Position position(x, y);
-        if (!map_.isInside(position)) {
-            return std::numeric_limits<double>::infinity();
-        }
-
-        grid_map::Position position_right(x + res_m_p_cell_, y);
-        if (!map_.isInside(position_right)) {
-            return std::numeric_limits<double>::infinity();
-        }
-
-        const double diff = map_.atPosition("elevation", position_right) - map_.atPosition("elevation", position);
-
-        if ((x <= (position_right.x() + eps_ / 2)) && (x >= position_right.x() - eps_ / 2)) {
-            return diff / eps_;
-        }
-        return 0.0;
+        float height_right = GetHeight(x + eps_, y);
+        float height_left = GetHeight(x - eps_, y);
+        return (height_right - height_left) / (2 * eps_);
     }
 
     double GetHeightDerivWrtY(double x, double y) const override
     {
-        grid_map::Position position(x, y);
-        if (!map_.isInside(position)) {
-            return std::numeric_limits<double>::infinity();
-        }
-
-        grid_map::Position position_up(x, y + res_m_p_cell_);
-        if (!map_.isInside(position_up)) {
-            return std::numeric_limits<double>::infinity();
-        }
-
-        const double diff = map_.atPosition("elevation", position_up) - map_.atPosition("elevation", position);
-
-        if ((y <= (position_up.y() + eps_ / 2)) && (y >= position_up.y() - eps_ / 2)) {
-            return diff / eps_;
-        }
-        return 0.0;
+        float height_up = GetHeight(x, y + eps_);
+        float height_down = GetHeight(x, y - eps_);
+        return (height_up - height_down) / (2 * eps_);
     }
 };
 
