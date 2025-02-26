@@ -38,12 +38,12 @@ public:
     {
         grid_map::Position position(x, y);
         if (!map_.isInside(position)) {
-            return 0.0;
+            return std::numeric_limits<double>::infinity();
         }
 
         grid_map::Position position_right(x + res_m_p_cell_, y);
         if (!map_.isInside(position_right)) {
-            return 0.0;
+            return std::numeric_limits<double>::infinity();
         }
 
         const double diff = map_.atPosition("elevation", position_right) - map_.atPosition("elevation", position);
@@ -58,12 +58,12 @@ public:
     {
         grid_map::Position position(x, y);
         if (!map_.isInside(position)) {
-            return 0.0;
+            return std::numeric_limits<double>::infinity();
         }
 
         grid_map::Position position_up(x, y + res_m_p_cell_);
         if (!map_.isInside(position_up)) {
-            return 0.0;
+            return std::numeric_limits<double>::infinity();
         }
 
         const double diff = map_.atPosition("elevation", position_up) - map_.atPosition("elevation", position);

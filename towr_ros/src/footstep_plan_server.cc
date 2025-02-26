@@ -263,17 +263,31 @@ public:
 
     // Snopt
     auto solver = std::make_shared<ifopt::SnoptSolver>();
-    // solver->SetOption("Print file", "snopt.out"); // Output file for SNOPT
-    // solver->SetOption("Major iterations limit", 500);
-    // solver->SetOption("Minor iterations limit", 1000);
-    // solver->SetOption("Iterations limit", 1500);
-    // solver->SetOption("Major optimality tolerance", 1e-4);
-    // solver->SetOption("Major feasibility tolerance", 1e-6);
-    // solver->SetOption("Minor feasibility tolerance", 1e-6);
-    // solver->SetOption("Verify level", 0);
+    // Default values (for reference)
+    // solver->SetIntParameter("Major Print level", 1);
+    // solver->SetIntParameter("Minor Print level", 1);
+    // solver->SetIntParameter("Derivative option", 1);  // 1 = solver->will not calculate missing derivatives
+    // solver->SetIntParameter("Verify level ", 3);
+    // solver->SetIntParameter("Iterations limit", 200000);
+    // solver->SetRealParameter("Major feasibility tolerance", 1.0e-4);  // target nonlinear constraint violation
+    // solver->SetRealParameter("Minor feasibility tolerance", 1.0e-4);  // for satisfying the QP bounds
+    // solver->SetRealParameter("Major optimality tolerance", 1.0e-2);  // target complementarity gap
+
+    solver->SetIntParameter("Major Print level", 1);
+    solver->SetIntParameter("Minor Print level", 1);
+    solver->SetIntParameter("Derivative option", 1);  // 1 = solver->will not calculate missing derivatives
+    solver->SetIntParameter("Verify level ", 3);
+    solver->SetIntParameter("Iterations limit", 200000);
+    solver->SetRealParameter("Major feasibility tolerance", 1.0e-4);  // target nonlinear constraint violation
+    solver->SetRealParameter("Minor feasibility tolerance", 1.0e-4);  // for satisfying the QP bounds
+    solver->SetRealParameter("Major optimality tolerance", 1.0e-2);  // target complementarity gap
 
     // Solve!
-    solver->Solve(nlp);
+    try {
+      solver->Solve(nlp);
+    } catch (const std::exception& e) {
+      ROS_ERROR("Exception caught during solver execution: %s", e.what());
+    }
 
     return solution;
   }
