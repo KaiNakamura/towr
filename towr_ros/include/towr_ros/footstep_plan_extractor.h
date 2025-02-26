@@ -124,6 +124,7 @@ void ExtractFootstepPlan(const towr_ros::FootstepPlanGoalConstPtr &args, const t
       contact_datum.duration = (footstepStates[i + 1].t_global_ - state.t_global_);
     } else {
       // For the last step, set the duration until the end of the time horizon
+      // TODO: can the time horizion be extracted from the spline holder?
       contact_datum.duration = (time_horizon - state.t_global_);
     }
 

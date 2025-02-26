@@ -129,6 +129,8 @@ int main(int argc, char **argv)
   // Define the goal state
   args.goal_state = createSingleRigidBodyState(0.1, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
 
+  args.state_sample_times = {0.0, 0.25, 0.5, 0.75, 1.0};
+
   // Publish the start end-effector positions
   publishEndEffectorPositions(lf_start_pub, args.start_state.LF_ee_point, "odom");
   publishEndEffectorPositions(rf_start_pub, args.start_state.RF_ee_point, "odom");

@@ -162,7 +162,7 @@ public:
     goal_pose_pub_.publish(goal_pose_msg);
 
     // Some placeholders to get things building
-    bool optimize_gait = true;
+    bool optimize_gait = false;
     // const std::string grid_csv = "placeholder";
 
     // Set up the NLP
@@ -278,14 +278,14 @@ public:
     return solution;
   }
 
-  void executeCB(const towr_ros::FootstepPlanGoalConstPtr &goal)
+  void executeCB(const towr_ros::FootstepPlanGoalConstPtr &args)
   {
     ROS_INFO("%s: Executing", action_name_.c_str());
     result_ = towr_ros::FootstepPlanResult(); // Initialize the result
     towr::SplineHolder solution;
 
     CPPTRACE_TRY {
-      solution = execute(goal);
+      solution = execute(args);
     } CPPTRACE_CATCH(const std::exception& e) {
       ROS_ERROR("%s: Exception caught trace: %s", action_name_.c_str(), e.what());
       cpptrace::from_current_exception().print();
@@ -295,8 +295,8 @@ public:
     }
 
     // With the solution, extract initial guesses and footstep plan
-    towr::ExtractInitialGuesses(solution, 0.01, result_.initial_guesses);
-    towr::ExtractFootstepPlan(goal, solution, TIME_HORIZON, result_.footstep_plan);
+    towr::ExtractInitialGuesses(args, solution, result_.initial_guesses);
+    towr::ExtractFootstepPlan(args, solution, TIME_HORIZON, result_.footstep_plan);
 
     // Set the action state to succeeded
     as_.setSucceeded(result_);
