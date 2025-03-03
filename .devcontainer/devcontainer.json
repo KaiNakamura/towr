@@ -4,8 +4,7 @@
   "build": {
     "dockerfile": "../Dockerfile",
     "args": {
-      "SNOPT_PATH": "libsnopt7_cpp",
-      "SNOPT_LICENSE": "snopt7.lic"
+      "HSL_PATH": "coinhsl-2024.05.15"
     }
   },
   "workspaceFolder": "/home/catkin_ws/src/towr",
