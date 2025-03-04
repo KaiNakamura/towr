@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-noetic-grid-map-rviz-plugin \
     ros-noetic-pybind11-catkin \
     libmpfr-dev \
+    gfortran \
     libgmp-dev
 # && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -78,6 +79,18 @@ RUN mkdir -p /home/snopt/include /home/snopt/lib && \
     mv /home/snopt/libsnopt7_cpp.a /home/snopt/libsnopt7_cpp.so /home/snopt/lib && \
     ln -s /home/snopt/lib/libsnopt7_cpp.so /home/snopt/lib/libsnopt7.so
 
+# HSL
+RUN cd repos && \
+    git clone https://github.com/coin-or-tools/ThirdParty-HSL.git
+ADD ${HSL_PATH} /home/repos/ThirdParty-HSL/coinhsl/
+RUN cd repos/ThirdParty-HSL && \
+    git checkout 4f8da75 && \
+    rm -r .git && \
+    ./configure && \
+    make && \   
+    make install && \
+    cd /home && rm -rf repos/ThirdParty-HSL
+
 # Ifopt
 RUN cd repos && \
     git clone https://github.com/KaiNakamura/ifopt.git && \
@@ -94,18 +107,6 @@ RUN /bin/bash -c "cd $CATKIN_WS && \
     catkin config -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
     catkin build xpp go1_description convex_plane_decomposition_ros && \
     source devel/setup.bash"
-
-# HSL: casadi requirement
-RUN cd repos && \
-    git clone https://github.com/coin-or-tools/ThirdParty-HSL.git
-ADD ${HSL_PATH} /home/repos/ThirdParty-HSL/coinhsl/
-RUN cd repos/ThirdParty-HSL && \
-    git checkout 4f8da75 && \
-    rm -r .git && \
-    ./configure && \
-    make && \   
-    make install && \
-    cd /home && rm -rf repos/ThirdParty-HSL
 
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.sh" >> /root/.bashrc
 RUN echo "source /home/$CATKIN_WS/devel/setup.bash" >> /root/.bashrc
