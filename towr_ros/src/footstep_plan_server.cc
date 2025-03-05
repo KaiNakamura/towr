@@ -262,7 +262,7 @@ public:
     // solver->SetOption("linear_solver", "mumps"); // Note: Mumps is default but is slow
 
     // Snopt
-    auto solver = std::make_shared<ifopt::SnoptSolver>();
+    // auto solver = std::make_shared<ifopt::SnoptSolver>();
     // Default values (for reference)
     // solver->SetIntParameter("Major Print level", 1);
     // solver->SetIntParameter("Minor Print level", 1);
@@ -273,14 +273,15 @@ public:
     // solver->SetRealParameter("Minor feasibility tolerance", 1.0e-4);  // for satisfying the QP bounds
     // solver->SetRealParameter("Major optimality tolerance", 1.0e-2);  // target complementarity gap
 
+    auto solver = std::make_shared<ifopt::SnoptSolver>();
     solver->SetIntParameter("Major Print level", 1);
     solver->SetIntParameter("Minor Print level", 1);
     solver->SetIntParameter("Derivative option", 1);  // 1 = solver->will not calculate missing derivatives
     solver->SetIntParameter("Verify level ", 3);
     solver->SetIntParameter("Iterations limit", 200000);
-    solver->SetRealParameter("Major feasibility tolerance", 1.0e-4);  // target nonlinear constraint violation
-    solver->SetRealParameter("Minor feasibility tolerance", 1.0e-4);  // for satisfying the QP bounds
-    solver->SetRealParameter("Major optimality tolerance", 1.0e-2);  // target complementarity gap
+    solver->SetRealParameter("Major feasibility tolerance", 1.0e-6);  // target nonlinear constraint violation
+    solver->SetRealParameter("Minor feasibility tolerance", 1.0e-6);  // for satisfying the QP bounds
+    solver->SetRealParameter("Major optimality tolerance", 1.0e-4);  // target complementarity gap
 
     // Solve!
     try {

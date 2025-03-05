@@ -86,6 +86,9 @@ RUN cd repos && \
     make -j && \
     sudo make install
 
+# Add the directory containing libifopt_core.so to the LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
 RUN /bin/bash -c "cd $CATKIN_WS && \
     source /opt/ros/$ROS_DISTRO/setup.sh && \
     catkin init && \

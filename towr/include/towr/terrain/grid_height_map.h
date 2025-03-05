@@ -36,7 +36,7 @@ public:
         #endif
 
         float height;
-        try{
+        try {
             height = map_.atPosition("elevation", position, grid_map::InterpolationMethods::INTER_LINEAR); 
         } catch (const std::out_of_range& e) {
             height = std::numeric_limits<float>::max();
