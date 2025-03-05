@@ -2,6 +2,7 @@ FROM osrf/ros:noetic-desktop-full
 
 WORKDIR /home
 
+ARG COIN_HSL_PATH=null
 ARG HSL_PATH=null
 
 # Set up the workspace environment
@@ -32,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-noetic-octomap-msgs \
     ros-noetic-grid-map-rviz-plugin \
     ros-noetic-pybind11-catkin \
+    libmetis-dev \
     libmpfr-dev \
     gfortran \
     libgmp-dev
@@ -82,14 +84,21 @@ RUN mkdir -p /home/snopt/include /home/snopt/lib && \
 # HSL
 RUN cd repos && \
     git clone https://github.com/coin-or-tools/ThirdParty-HSL.git
-ADD ${HSL_PATH} /home/repos/ThirdParty-HSL/coinhsl/
+ADD ${COIN_HSL_PATH} /home/repos/ThirdParty-HSL/coinhsl/
 RUN cd repos/ThirdParty-HSL && \
     git checkout 4f8da75 && \
     rm -r .git && \
     ./configure && \
-    make && \   
-    make install && \
-    cd /home && rm -rf repos/ThirdParty-HSL
+    make -j && \   
+    sudo make install
+
+
+ADD ${HSL_PATH} /home/repos/hsl/
+RUN cd repos/hsl && \
+    ./configure && \
+    make -j1 && \   
+    sudo make install && \
+    ln -sf /usr/local/lib/libhsl_ma57.so /opt/ros/noetic/lib/libhsl.so
 
 # Ifopt
 RUN cd repos && \
