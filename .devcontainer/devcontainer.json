@@ -6,8 +6,8 @@
     "args": {
       "SNOPT_PATH": "libsnopt7_cpp",
       "SNOPT_LICENSE": "snopt7.lic",
-      "COIN_HSL_PATH": "coinhsl-2024.05.15",
-      "HSL_PATH": "hsl_ma57-5.3.2"
+      "HSL57_PATH": "hsl_ma57-5.3.2",
+      "HSL97_PATH": "hsl_ma97-2.8.1"
     }
   },
   "workspaceFolder": "/home/catkin_ws/src/towr",

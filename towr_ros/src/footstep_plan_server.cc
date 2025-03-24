@@ -256,10 +256,11 @@ public:
     solver->SetOption("acceptable_iter", 15);
     solver->SetOption("acceptable_tol", 1e-3);
     solver->SetOption("max_iter", 500);
-    solver->SetOption("max_cpu_time", 5.0);
+    solver->SetOption("max_cpu_time", 50);
     solver->SetOption("tol", 1e-4);
     solver->SetOption("print_level", 5); // For debugging
-    solver->SetOption("linear_solver", "ma57"); // Note: Mumps is default but is slow
+    // solver->SetOption("linear_solver", "ma57"); // Note: Mumps is default but is slow
+    solver->SetOption("linear_solver", "ma97"); // Note: Mumps is default but is slow
 
     // Snopt
     // auto solver = std::make_shared<ifopt::SnoptSolver>();

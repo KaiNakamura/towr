@@ -2,8 +2,8 @@ FROM osrf/ros:noetic-desktop-full
 
 WORKDIR /home
 
-ARG COIN_HSL_PATH=null
-ARG HSL_PATH=null
+ARG HSL57_PATH=null
+ARG HSL97_PATH=null
 
 # Set up the workspace environment
 ENV CATKIN_WS=catkin_ws
@@ -81,24 +81,21 @@ RUN mkdir -p /home/snopt/include /home/snopt/lib && \
     mv /home/snopt/libsnopt7_cpp.a /home/snopt/libsnopt7_cpp.so /home/snopt/lib && \
     ln -s /home/snopt/lib/libsnopt7_cpp.so /home/snopt/lib/libsnopt7.so
 
-# HSL
-RUN cd repos && \
-    git clone https://github.com/coin-or-tools/ThirdParty-HSL.git
-ADD ${COIN_HSL_PATH} /home/repos/ThirdParty-HSL/coinhsl/
-RUN cd repos/ThirdParty-HSL && \
-    git checkout 4f8da75 && \
-    rm -r .git && \
-    ./configure && \
-    make -j && \   
-    sudo make install
 
-
-ADD ${HSL_PATH} /home/repos/hsl/
-RUN cd repos/hsl && \
+ADD ${HSL57_PATH} /home/repos/hsl57/
+RUN cd repos/hsl57 && \
     ./configure && \
     make -j1 && \   
     sudo make install && \
     ln -sf /usr/local/lib/libhsl_ma57.so /opt/ros/noetic/lib/libhsl.so
+
+
+ADD ${HSL97_PATH} /home/repos/hsl97/
+RUN cd repos/hsl97 && \
+    ./configure FC="gfortran -fopenmp" CC="gcc -fopenmp" CXX="g++ -fopenmp" LDFLAGS="-lgomp"&& \
+    make -j1 && \   
+    sudo make install && \
+    ln -sf /usr/local/lib/libhsl_ma97.so /opt/ros/noetic/lib/libhsl.so
 
 # Ifopt
 RUN cd repos && \
@@ -108,7 +105,8 @@ RUN cd repos && \
     cd build && \
     cmake .. -DBUILD_SNOPT=ON -DCMAKE_BUILD_TYPE=Release && \
     make -j && \
-    sudo make install
+    sudo make install && \
+    ln -sf /usr/local/lib/libifopt_core.so /opt/ros/noetic/lib/libifopt_core.so
 
 RUN /bin/bash -c "cd $CATKIN_WS && \
     source /opt/ros/$ROS_DISTRO/setup.sh && \

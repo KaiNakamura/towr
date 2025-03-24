@@ -19,7 +19,7 @@
 
   <!-- Play rosbag in loop -->
   <node pkg="rosbag" type="play" name="rosbag_play" 
-        args="--loop $(find towr_ros)/bag/perception_stairs2.bag
+        args="--loop $(find towr_ros)/bag/perception_stairs.bag
               --topics /convex_plane_decomposition_ros/planar_terrain" 
         output="screen" />
 
