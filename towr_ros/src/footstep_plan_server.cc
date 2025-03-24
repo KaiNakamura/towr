@@ -10,6 +10,7 @@
 #include <xpp_states/convert.h>
 #include <xpp_msgs/topic_names.h>
 #include <ifopt/ipopt_solver.h>
+#include <ifopt/snopt_solver.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Path.h>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
@@ -248,42 +249,47 @@ public:
     // solver->SetOption("derivative_test", "first-order");
     // TODO: Fine tune these parameters to suit this use case
 
-    // IPOPT
+    // Ipopt
     auto solver = std::make_shared<ifopt::IpoptSolver>();
     solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
     solver->SetOption("hessian_approximation", "limited-memory");
     solver->SetOption("acceptable_iter", 15);
     solver->SetOption("acceptable_tol", 1e-3);
     solver->SetOption("max_iter", 500);
-    solver->SetOption("max_cpu_time", 5.0);
+    solver->SetOption("max_cpu_time", 50);
     solver->SetOption("tol", 1e-4);
     solver->SetOption("print_level", 5); // For debugging
-    
-    /* Which linear solver to use. Mumps is default because it comes with the
-    * precompiled ubuntu binaries. However, the coin-hsl solvers can be
-    * significantly faster and are free for academic purposes. They can be
-    * downloaded here: http://www.hsl.rl.ac.uk/ipopt/ and must be compiled
-    * into your IPOPT libraries. Then you can use the additional strings:
-    * "ma27, ma57, ma77, ma86, ma97" here.
-    */
-    solver->SetOption("linear_solver", "mumps");
+    // solver->SetOption("linear_solver", "ma57"); // Note: Mumps is default but is slow
+    solver->SetOption("linear_solver", "ma97"); // Note: Mumps is default but is slow
 
-    // SNOPT
-    // TODO: Currently doesn't work
+    // Snopt
     // auto solver = std::make_shared<ifopt::SnoptSolver>();
-    // solver->SetOption("Print file", "snopt.out"); // Output file for SNOPT
-    // solver->SetOption("Major iterations limit", 500);
-    // solver->SetOption("Minor iterations limit", 1000);
-    // solver->SetOption("Iterations limit", 1500);
-    // solver->SetOption("Major optimality tolerance", 1e-4);
-    // solver->SetOption("Major feasibility tolerance", 1e-6);
-    // solver->SetOption("Minor feasibility tolerance", 1e-6);
-    // solver->SetOption("Verify level", 0);
+    // Default values (for reference)
+    // solver->SetIntParameter("Major Print level", 1);
+    // solver->SetIntParameter("Minor Print level", 1);
+    // solver->SetIntParameter("Derivative option", 1);  // 1 = solver->will not calculate missing derivatives
+    // solver->SetIntParameter("Verify level ", 3);
+    // solver->SetIntParameter("Iterations limit", 200000);
+    // solver->SetRealParameter("Major feasibility tolerance", 1.0e-4);  // target nonlinear constraint violation
+    // solver->SetRealParameter("Minor feasibility tolerance", 1.0e-4);  // for satisfying the QP bounds
+    // solver->SetRealParameter("Major optimality tolerance", 1.0e-2);  // target complementarity gap
+
+    // solver->SetIntParameter("Major Print level", 1);
+    // solver->SetIntParameter("Minor Print level", 1);
+    // solver->SetIntParameter("Derivative option", 1);  // 1 = solver->will not calculate missing derivatives
+    // solver->SetIntParameter("Verify level ", 3);
+    // solver->SetIntParameter("Iterations limit", 200000);
+    // solver->SetRealParameter("Major feasibility tolerance", 1.0e-4);  // target nonlinear constraint violation
+    // solver->SetRealParameter("Minor feasibility tolerance", 1.0e-4);  // for satisfying the QP bounds
+    // solver->SetRealParameter("Major optimality tolerance", 1.0e-2);  // target complementarity gap
 
     // Solve!
-    solver->Solve(nlp);
+    try {
+      solver->Solve(nlp);
+    } catch (const std::exception& e) {
+      ROS_ERROR("Exception caught during solver execution: %s", e.what());
+    }
 
-    // return towr_ros::FootstepPlanResult();
     return solution;
   }
 
