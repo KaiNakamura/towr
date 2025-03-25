@@ -26,7 +26,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-noetic-catkin \
     libeigen3-dev \
     coinor-libipopt-dev \
-    # ros-noetic-ifopt \
     libncurses5-dev \
     xterm \
     liboctomap-dev \
@@ -81,14 +80,12 @@ RUN mkdir -p /home/snopt/include /home/snopt/lib && \
     mv /home/snopt/libsnopt7_cpp.a /home/snopt/libsnopt7_cpp.so /home/snopt/lib && \
     ln -s /home/snopt/lib/libsnopt7_cpp.so /home/snopt/lib/libsnopt7.so
 
-
 ADD ${HSL57_PATH} /home/repos/hsl57/
 RUN cd repos/hsl57 && \
     ./configure && \
     make -j1 && \   
     sudo make install && \
     ln -sf /usr/local/lib/libhsl_ma57.so /opt/ros/noetic/lib/libhsl.so
-
 
 ADD ${HSL97_PATH} /home/repos/hsl97/
 RUN cd repos/hsl97 && \
