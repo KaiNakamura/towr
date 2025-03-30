@@ -1,8 +1,53 @@
+<p align="center">
+  <big style="font-size:50px;">towr contact sequence planner</big>
+</p>
+
+## Setup
+
+Clone this repo.
+
+#### Build the docker container
+
+Due to the complex list of dependencies, we have setup a docker container for this project. Make sure you have the correct [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed for your system
+
+This project has been setup to easily install and run in VSCode using the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) plugin.
+
+In VSCode, enter the command <strong>`> Dev Containers: Reopen in Container`</strong> and it should do pretty much everything for you.
+
+There are ways to do the same thing using only Docker Compose files, but you'll want to be careful to use the correct `args`, `workspaceFolder`, `workspaceMount`, `mounts`, and `DISPLAY` as prescribed in the devcontainer. Note that some of these may need to be changed for Linux systems
+
+#### Build the source code
+
+```bash
+# cd /home/catkin_ws
+# catkin build towr_ros
+```
+
+#### Run the project
+
+Depending on your computer setup, and what your `DISPLAY` variable is set to, you may need to install some form of [X Server](https://vcxsrv.com/) and launch that before running the code to get GUI output. The included devcontainer.json has the `DISPLAY` variable set up for this. On some machines you can get away with `"DISPLAY": "0"` and avoid having to set this up.
+
+In one terminal, first:
+
+```bash
+# cd /home/catkin_ws
+# towr_ros footstep_planner.launch
+```
+
+In another terminal after the above:
+
+```bash
+# cd /home/catkin_ws
+# rosrun towr_ros footstep_plan_client
+```
+
+# Original towr docs
+
 <img align="right" src="https://i.imgur.com/qI1Jfyl.gif" width="55%"/>
 
 [<img src="https://i.imgur.com/qliQVx1.png" />](https://ieeexplore.ieee.org/document/8283570 "Go to RA-L paper")
 
-*A light-weight and extensible C++ library for trajectory optimization for legged robots.*
+_A light-weight and extensible C++ library for trajectory optimization for legged robots._
 
 [![Build Status](http://build.ros.org/buildStatus/icon?job=Mdev__towr__ubuntu_bionic_amd64)](http://build.ros.org/view/Mdev/job/Mdev__towr__ubuntu_bionic_amd64/)
 [![Documentation](https://img.shields.io/badge/docs-generated-brightgreen.svg)](http://docs.ros.org/kinetic/api/towr/html/)
@@ -11,14 +56,14 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/ethz-adrl/towr/badge)](https://www.codefactor.io/repository/github/ethz-adrl/towr)
 [![License BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](https://tldrlegal.com/license/bsd-3-clause-license-%28revised%29#fulltext)
 
-A base-set of variables, costs and constraints that can be combined and extended to formulate trajectory optimization problems for legged systems. These implementations have been used to generate a variety of motions such as monoped hopping, biped walking, or a complete quadruped trotting cycle, while optimizing over the gait and step durations in less than 100ms ([paper](https://ieeexplore.ieee.org/document/8283570/)).  
+A base-set of variables, costs and constraints that can be combined and extended to formulate trajectory optimization problems for legged systems. These implementations have been used to generate a variety of motions such as monoped hopping, biped walking, or a complete quadruped trotting cycle, while optimizing over the gait and step durations in less than 100ms ([paper](https://ieeexplore.ieee.org/document/8283570/)).
 
 Features:  
-:heavy_check_mark: Intuitive and efficient formulation of variables, cost and constraints using [Eigen].   
+:heavy_check_mark: Intuitive and efficient formulation of variables, cost and constraints using [Eigen].  
 :heavy_check_mark: [ifopt] enables using the high-performance solvers [Ipopt] and [Snopt].  
 :heavy_check_mark: Elegant rviz visualization of motion plans using [xpp].  
 :heavy_check_mark: [ROS]/[catkin] integration (optional).  
-:heavy_check_mark: Light-weight ([~6k lines](https://i.imgur.com/gP3gv34.png) of code) makes it easy to use and extend.  
+:heavy_check_mark: Light-weight ([~6k lines](https://i.imgur.com/gP3gv34.png) of code) makes it easy to use and extend.
 
 <br>
 
@@ -34,24 +79,30 @@ Features:
 [<img src="https://i.imgur.com/8M4v4aP.gif" />](https://youtu.be/0jE46GqzxMM "Show more examples on Youtube")
 
 ## Install
+
 The easiest way to install is through the [ROS binaries](http://wiki.ros.org/towr):
+
 ```bash
 sudo apt-get install ros-<ros-distro>-towr-ros
 ```
 
 In case these don't yet exist for your distro, there are two ways to build this code from source:
-* [Option 1](#towr-with-cmake): core library and hopper-example with pure [CMake].
-* [Option 2](#towr-ros-with-catkin) (recommended): core library & GUI & ROS-rviz-visualization built with [catkin] and [ROS]. 
 
+- [Option 1](#towr-with-cmake): core library and hopper-example with pure [CMake].
+- [Option 2](#towr-ros-with-catkin) (recommended): core library & GUI & ROS-rviz-visualization built with [catkin] and [ROS].
 
 #### <a name="towr-with-cmake"></a> Building with CMake
-* Install dependencies [CMake], [Eigen], [Ipopt]:
+
+- Install dependencies [CMake], [Eigen], [Ipopt]:
+
   ```bash
   sudo apt-get install cmake libeigen3-dev coinor-libipopt-dev
   ```
-  Install [ifopt], by cloning the repo and then: ``cmake .. && make install`` on your system. 
 
-* Build towr:
+  Install [ifopt], by cloning the repo and then: `cmake .. && make install` on your system.
+
+- Build towr:
+
   ```bash
   git clone https://github.com/ethz-adrl/towr.git && cd towr/towr
   mkdir build && cd build
@@ -61,13 +112,14 @@ In case these don't yet exist for your distro, there are two ways to build this 
   # sudo xargs rm < install_manifest.txt # in case you want to uninstall the above
   ```
 
-* Test ([hopper_example.cc](towr/test/hopper_example.cc)): Generates a motion for a one-legged hopper using Ipopt
+- Test ([hopper_example.cc](towr/test/hopper_example.cc)): Generates a motion for a one-legged hopper using Ipopt
+
   ```bash
   ./towr-example # or ./towr-test if gtest was found
   ```
- 
-* Use: You can easily customize and add your own constraints and variables to the optimization problem.
-  Herefore, add the following to your *CMakeLists.txt*:
+
+- Use: You can easily customize and add your own constraints and variables to the optimization problem.
+  Herefore, add the following to your _CMakeLists.txt_:
   ```cmake
   find_package(towr 1.2 REQUIRED)
   add_executable(main main.cpp) # Your custom variables, costs and constraints added to TOWR
@@ -75,15 +127,17 @@ In case these don't yet exist for your distro, there are two ways to build this 
   ```
 
 #### <a name="towr-ros-with-catkin"></a> Building with catkin
-We provide a [ROS]-wrapper for the pure cmake towr library, which adds a keyboard interface to modify goal state and motion types as well as visualizes the produces motions plans in rviz using [xpp]. 
 
-* Install dependencies [CMake], [catkin], [Eigen], [Ipopt], [ROS], [xpp], [ncurses], [xterm]:
+We provide a [ROS]-wrapper for the pure cmake towr library, which adds a keyboard interface to modify goal state and motion types as well as visualizes the produces motions plans in rviz using [xpp].
+
+- Install dependencies [CMake], [catkin], [Eigen], [Ipopt], [ROS], [xpp], [ncurses], [xterm]:
+
   ```bash
   sudo apt-get install cmake libeigen3-dev coinor-libipopt-dev libncurses5-dev xterm
   sudo apt-get install ros-<ros-distro>-desktop-full ros-<ros-distro>-xpp
   ```
 
-* Build workspace:
+- Build workspace:
   ```bash
   cd catkin_workspace/src
   git clone https://github.com/ethz-adrl/ifopt.git
@@ -92,64 +146,74 @@ We provide a [ROS]-wrapper for the pure cmake towr library, which adds a keyboar
   catkin_make_isolated -DCMAKE_BUILD_TYPE=Release # or `catkin build`
   source ./devel_isolated/setup.bash
   ```
-  
-* Use: Include in your catkin project by adding to your *CMakeLists.txt* 
+- Use: Include in your catkin project by adding to your _CMakeLists.txt_
   ```cmake
   add_compile_options(-std=c++11)
-  find_package(catkin COMPONENTS towr) 
+  find_package(catkin COMPONENTS towr)
   include_directories(${catkin_INCLUDE_DIRS})
   target_link_libraries(foo ${catkin_LIBRARIES})
   ```
-  Add the following to your *package.xml*:
+  Add the following to your _package.xml_:
   ```xml
   <package>
     <depend>towr</depend>
   </package>
   ```
-  
+
 ## Run
-  Launch the program using
-  ```bash
-  roslaunch towr_ros towr_ros.launch  # debug:=true  (to debug with gdb)
-  ```
-  Click in the xterm terminal and hit 'o'. 
-  
-  Information about how to tune the paramters can be found [here](http://docs.ros.org/api/towr/html/group__Parameters.html). 
-  
+
+Launch the program using
+
+```bash
+roslaunch towr_ros towr_ros.launch  # debug:=true  (to debug with gdb)
+```
+
+Click in the xterm terminal and hit 'o'.
+
+Information about how to tune the paramters can be found [here](http://docs.ros.org/api/towr/html/group__Parameters.html).
+
 ## Develop
+
 #### Library overview
- * The relevant classes and parameters to build on are collected [modules](http://docs.ros.org/api/towr/html/modules.html).
- * A nice graphical overview as UML can be seen [here](http://docs.ros.org/api/towr/html/inherits.html).
- * The [doxygen documentation](http://docs.ros.org/api/towr/html/) provides helpful information for developers.
+
+- The relevant classes and parameters to build on are collected [modules](http://docs.ros.org/api/towr/html/modules.html).
+- A nice graphical overview as UML can be seen [here](http://docs.ros.org/api/towr/html/inherits.html).
+- The [doxygen documentation](http://docs.ros.org/api/towr/html/) provides helpful information for developers.
 
 #### Problem formulation
- * This code formulates the variables, costs and constraints using ifopt, so it makes sense to briefly familiarize with the syntax using [this example].
- * A minimal towr example without ROS, formulating a problem for a one-legged hopper, 
+
+- This code formulates the variables, costs and constraints using ifopt, so it makes sense to briefly familiarize with the syntax using [this example].
+- A minimal towr example without ROS, formulating a problem for a one-legged hopper,
   can be seen [here](towr/test/hopper_example.cc) and is great starting point.
- * We recommend using the ROS infrastructure provided to dynamically visualize, plot and change the problem formulation. To define your own problem using this infrastructure, use this [example](towr_ros/src/towr_ros_app.cc) as a guide. 
- 
+- We recommend using the ROS infrastructure provided to dynamically visualize, plot and change the problem formulation. To define your own problem using this infrastructure, use this [example](towr_ros/src/towr_ros_app.cc) as a guide.
+
 #### Add your own variables, costs and constraints
- * This library provides a set of variables, costs and constraints to formulate the trajectory optimization problem. An [example formulation](towr/include/towr/nlp_formulation.h) of how to combine these is given, however, this formulation can probably be improved. To add your own e.g. constraint-set, define a class with it's values and derivatives, and then add it to the formulation ```nlp.AddConstraintSet(your_custom_constraints);``` as shown [here](towr/test/hopper_example.cc).
+
+- This library provides a set of variables, costs and constraints to formulate the trajectory optimization problem. An [example formulation](towr/include/towr/nlp_formulation.h) of how to combine these is given, however, this formulation can probably be improved. To add your own e.g. constraint-set, define a class with it's values and derivatives, and then add it to the formulation `nlp.AddConstraintSet(your_custom_constraints);` as shown [here](towr/test/hopper_example.cc).
 
 #### Add your own robot
- * Want to add your own robot to towr? Start [here](http://docs.ros.org/en/melodic/api/towr/html/group__Robots.html).
- * To visualize that robot in rviz, see [xpp].
+
+- Want to add your own robot to towr? Start [here](http://docs.ros.org/en/melodic/api/towr/html/group__Robots.html).
+- To visualize that robot in rviz, see [xpp].
 
 ## Contribute
+
 We love pull request, whether its new constraint formulations, additional robot models, bug fixes, unit tests or updating the documentation. Please have a look at [CONTRIBUTING.md](CONTRIBUTING.md) for more information.  
 See here the list of [contributors](https://github.com/ethz-adrl/towr/graphs/contributors) who participated in this project.
 
 ## Projects using towr
- * https://github.com/popi-mkx3/popi_project
+
+- https://github.com/popi-mkx3/popi_project
 
 ## Publications
-All publications underlying this code can be found [here](https://www.alex-winkler.com). 
+
+All publications underlying this code can be found [here](https://www.alex-winkler.com).
 The core paper is:
- 
+
     @article{winkler18,
-      author    = {Winkler, Alexander W and Bellicoso, Dario C and 
+      author    = {Winkler, Alexander W and Bellicoso, Dario C and
                    Hutter, Marco and Buchli, Jonas},
-      title     = {Gait and Trajectory Optimization for Legged Systems 
+      title     = {Gait and Trajectory Optimization for Legged Systems
                    through Phase-based End-Effector Parameterization},
       journal   = {IEEE Robotics and Automation Letters (RA-L)},
       year      = {2018},
@@ -158,26 +222,25 @@ The core paper is:
       volume    = {3},
       doi       = {10.1109/LRA.2018.2798285},
     }
-    
-A broader overview of the topic of Trajectory optimization and derivation of 
-the Single-Rigid-Body Dynamics model used in this work: 
-[DOI 10.3929/ethz-b-000272432](https://doi.org/10.3929/ethz-b-000272432)  
 
+A broader overview of the topic of Trajectory optimization and derivation of
+the Single-Rigid-Body Dynamics model used in this work:
+[DOI 10.3929/ethz-b-000272432](https://doi.org/10.3929/ethz-b-000272432)
 
-## Authors 
+## Authors
+
 [Alexander W. Winkler](https://www.alex-winkler.com) - Initial Work/Maintainer
 
 The work was carried out at the following institutions:
 
-[<img src="https://i.imgur.com/aGOnNTZ.png" height="45" />](https://www.ethz.ch/en.html "ETH Zurich") &nbsp; &nbsp; &nbsp; &nbsp; [<img src="https://i.imgur.com/uCvLs2j.png" height="45" />](http://www.adrl.ethz.ch/doku.php "Agile and Dexterous Robotics Lab")  &nbsp; &nbsp; &nbsp; &nbsp;[<img src="https://i.imgur.com/gYxWH9p.png" height="45" />](http://www.rsl.ethz.ch/ "Robotic Systems Lab")
-
+[<img src="https://i.imgur.com/aGOnNTZ.png" height="45" />](https://www.ethz.ch/en.html "ETH Zurich") &nbsp; &nbsp; &nbsp; &nbsp; [<img src="https://i.imgur.com/uCvLs2j.png" height="45" />](http://www.adrl.ethz.ch/doku.php "Agile and Dexterous Robotics Lab") &nbsp; &nbsp; &nbsp; &nbsp;[<img src="https://i.imgur.com/gYxWH9p.png" height="45" />](http://www.rsl.ethz.ch/ "Robotic Systems Lab")
 
 [A. W. Winkler]: https://awinkler.github.io/publications.html
 [CMake]: https://cmake.org/cmake/help/v3.0/
 [std_msgs]: http://wiki.ros.org/std_msgs
 [roscpp]: http://wiki.ros.org/roscpp
 [message_generation]: http://wiki.ros.org/message_generation
-[rosbag]: http://wiki.ros.org/rosbag 
+[rosbag]: http://wiki.ros.org/rosbag
 [HyQ]: https://www.iit.it/research/lines/dynamic-legged-systems
 [ANYmal]: http://www.rsl.ethz.ch/robots-media/anymal.html
 [ROS]: http://www.ros.org
