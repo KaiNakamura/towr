@@ -13,8 +13,8 @@ float64[] state_sample_times
 ### Result (return values) definition
 
 # trajectory containing the generated trajectory at each timestep
-towr_ros/InitialGuessArray initial_guesses
+fpowr/InitialGuessArray initial_guesses
 
 # The contact data for each foot at each timestep
-towr_ros/FootstepPlan footstep_plan
+fpowr/FootstepPlan footstep_plan
 ---

@@ -6,12 +6,12 @@
 #include <towr/terrain/grid_height_map.h>
 #include <towr/terrain/height_map_from_csv.h>
 #include <towr/variables/spline_holder.h>
-#include <towr_ros/FootstepPlanAction.h>
-#include <towr_ros/FootstepPlan.h>
-#include <towr_ros/footstep_plan_extractor.h>
-#include <towr_ros/initial_guess_extractor.h>
-#include <towr_ros/nearest_plane_lookup.h>
-#include <towr_ros/towr_xpp_ee_map.h>
+#include <fpowr/FootstepPlanAction.h>
+#include <fpowr/FootstepPlan.h>
+#include <fpowr/footstep_plan_extractor.h>
+#include <fpowr/fpowr_xpp_ee_map.h>
+#include <fpowr/initial_guess_extractor.h>
+#include <fpowr/nearest_plane_lookup.h>
 #include <ifopt/ipopt_solver.h>
 #include <ifopt/snopt_solver.h>
 #include <xpp_states/convert.h>
@@ -32,12 +32,12 @@ protected:
   static constexpr double PLAYBACK_SPEED = 0.5; // Playback speed for urdf visualization
 
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<towr_ros::FootstepPlanAction> as_; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
+  actionlib::SimpleActionServer<fpowr::FootstepPlanAction> as_; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
   std::string action_name_;
 
   // Create messages that are used to published feedback/result
-  towr_ros::FootstepPlanFeedback feedback_;
-  towr_ros::FootstepPlanResult result_;
+  fpowr::FootstepPlanFeedback feedback_;
+  fpowr::FootstepPlanResult result_;
 
   // Publishers
   ros::Publisher base_path_pub_;
@@ -119,7 +119,7 @@ public:
   {
     // Match dt of trajectory and playback rate
     ros::Rate rate(100 * PLAYBACK_SPEED);
-    auto trajectory = towr::GetTrajectory(solution, 0.01 * PLAYBACK_SPEED);
+    auto trajectory = fpowr::GetTrajectory(solution, 0.01 * PLAYBACK_SPEED);
 
     for (const auto& state : trajectory)
     {
@@ -129,7 +129,7 @@ public:
     }
   }
 
-  towr::SplineHolder execute(const towr_ros::FootstepPlanGoalConstPtr &args)
+  towr::SplineHolder execute(const fpowr::FootstepPlanGoalConstPtr &args)
   {
     // Publish start and goal poses for visualization
     geometry_msgs::PoseStamped start_pose_msg;
@@ -267,10 +267,10 @@ public:
     return solution;
   }
 
-  void executeCB(const towr_ros::FootstepPlanGoalConstPtr &args)
+  void executeCB(const fpowr::FootstepPlanGoalConstPtr &args)
   {
     ROS_INFO("%s: Executing", action_name_.c_str());
-    result_ = towr_ros::FootstepPlanResult(); // Initialize the result
+    result_ = fpowr::FootstepPlanResult(); // Initialize the result
     towr::SplineHolder solution;
 
     CPPTRACE_TRY {
@@ -284,8 +284,8 @@ public:
     }
 
     // With the solution, extract initial guesses and footstep plan
-    towr::ExtractInitialGuesses(args, solution, result_.initial_guesses);
-    towr::ExtractFootstepPlan(args, solution, TIME_HORIZON, result_.footstep_plan);
+    fpowr::ExtractInitialGuesses(args, solution, result_.initial_guesses);
+    fpowr::ExtractFootstepPlan(args, solution, TIME_HORIZON, result_.footstep_plan);
 
     // Set the action state to succeeded
     as_.setSucceeded(result_);

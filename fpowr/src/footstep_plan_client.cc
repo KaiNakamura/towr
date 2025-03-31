@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <towr/models/go1/go1_model.h>
-#include <towr_ros/FootstepPlanAction.h>
-#include <towr_ros/InitialGuessArray.h>
+#include <fpowr/FootstepPlanAction.h>
+#include <fpowr/InitialGuessArray.h>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
@@ -31,8 +31,8 @@ geometry_msgs::Point createEndEffectorPoint(const geometry_msgs::Pose& trunk_pos
   return point;
 }
 
-towr_ros::SingleRigidBody createSingleRigidBodyState(double x, double y, double z, double w, double ox, double oy, double oz, const towr::KinematicModel& kinematic_model) {
-  towr_ros::SingleRigidBody state;
+fpowr::SingleRigidBody createSingleRigidBodyState(double x, double y, double z, double w, double ox, double oy, double oz, const towr::KinematicModel& kinematic_model) {
+  fpowr::SingleRigidBody state;
   state.trunk_pose = createTrunkPose(x, y, z, w, ox, oy, oz);
   state.LF_ee_point = createEndEffectorPoint(state.trunk_pose, kinematic_model.GetNominalStanceInBase().at(towr::LF));
   state.RF_ee_point = createEndEffectorPoint(state.trunk_pose, kinematic_model.GetNominalStanceInBase().at(towr::RF));
@@ -67,14 +67,14 @@ int main(int argc, char **argv)
   ros::Publisher rh_goal_pub = nh.advertise<geometry_msgs::PointStamped>("rh_goal", 1);
 
   // Create a publisher for the footstep plan
-  ros::Publisher footstep_plan_pub = nh.advertise<towr_ros::FootstepPlan>("footstep_plan", 1);
+  ros::Publisher footstep_plan_pub = nh.advertise<fpowr::FootstepPlan>("footstep_plan", 1);
 
   // Create a publisher for the initial guesses
-  ros::Publisher initial_guess_pub = nh.advertise<towr_ros::InitialGuessArray>("initial_guesses", 1);
+  ros::Publisher initial_guess_pub = nh.advertise<fpowr::InitialGuessArray>("initial_guesses", 1);
 
   // Create the action client
   // True causes the client to spin its own thread
-  actionlib::SimpleActionClient<towr_ros::FootstepPlanAction> ac("footstep_plan", true);
+  actionlib::SimpleActionClient<fpowr::FootstepPlanAction> ac("footstep_plan", true);
 
   ROS_INFO("Waiting for action server to start.");
   // Wait for the action server to start
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 
   // Open the bag file
   rosbag::Bag bag;
-  bag.open("/home/catkin_ws/src/towr/towr_ros/bag/perception_stairs.bag", rosbag::bagmode::Read);
+  bag.open("/home/catkin_ws/src/towr/fpowr/bag/perception_stairs.bag", rosbag::bagmode::Read);
 
   // Create a view for the PlanarTerrain messages
   rosbag::View view(bag, rosbag::TopicQuery("/convex_plane_decomposition_ros/planar_terrain"));
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
   // Note: The "FootstepPlanGoal" is just the ROS Action type for the inputs to
   // the footstep planner
   // NOT to be confused with the actual "goal" state of the robot
-  towr_ros::FootstepPlanGoal args;
+  fpowr::FootstepPlanGoal args;
 
   // Attempt to set the terrain
   if (terrain_msg != nullptr)
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
     ROS_INFO("Action finished: %s", state.toString().c_str());
 
     // Get the result
-    towr_ros::FootstepPlanResultConstPtr result = ac.getResult();
+    fpowr::FootstepPlanResultConstPtr result = ac.getResult();
 
     // Publish the footstep plan
     footstep_plan_pub.publish(result->footstep_plan);

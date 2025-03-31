@@ -1,5 +1,5 @@
-#ifndef TOWR_ROS_NEAREST_PLANE_LOOKUP_H_
-#define TOWR_ROS_NEAREST_PLANE_LOOKUP_H_ 
+#ifndef FPOWR_NEAREST_PLANE_LOOKUP_H_
+#define FPOWR_NEAREST_PLANE_LOOKUP_H_ 
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/core/cs.hpp>
@@ -9,14 +9,13 @@
 #include <boost/geometry/algorithms/distance.hpp>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
 #include <tf/transform_datatypes.h>
-#include <xpp_states/endeffectors.h>
 
 namespace bg = boost::geometry;
 
 using point_t = bg::model::d2::point_xy<double>;
 using polygon_t = bg::model::polygon<point_t>;
 
-namespace towr {
+namespace fpowr {
 
     std::vector<polygon_t> PlanarRegionsToPolygons(const convex_plane_decomposition_msgs::PlanarTerrain& terrain)
     {
@@ -85,6 +84,6 @@ namespace towr {
         }
     };
 
-} // namespace towr
+} // namespace fpowr
 
-#endif /* TOWR_ROS_NEAREST_PLANE_LOOKUP_H_ */
+#endif /* FPOWR_NEAREST_PLANE_LOOKUP_H_ */

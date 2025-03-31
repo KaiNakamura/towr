@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(towr_ros)
+project(fpowr)
 
 add_compile_options(-std=c++11)
 
@@ -70,7 +70,7 @@ target_link_libraries(
 )
 add_dependencies(
   footstep_plan_server
-  ${towr_ros_EXPORTED_TARGETS}
+  ${fpowr_EXPORTED_TARGETS}
 )
 
 # Footstep Plan Client
@@ -82,7 +82,7 @@ target_link_libraries(
 )
 add_dependencies(
   footstep_plan_client
-  ${towr_ros_EXPORTED_TARGETS}
+  ${fpowr_EXPORTED_TARGETS}
 )
 
 # Planar Terrain From Bag Publisher
@@ -93,7 +93,7 @@ target_link_libraries(
 )
 add_dependencies(
   planar_terrain_from_bag_publisher
-  ${towr_ros_EXPORTED_TARGETS}
+  ${fpowr_EXPORTED_TARGETS}
 )
 
 # GridMap Republisher
@@ -104,7 +104,7 @@ target_link_libraries(
 )
 add_dependencies(
   grid_map_republisher
-  ${towr_ros_EXPORTED_TARGETS}
+  ${fpowr_EXPORTED_TARGETS}
 )
 
 # PlanarRegion Republisher
@@ -115,7 +115,7 @@ target_link_libraries(
 )
 add_dependencies(
   planar_region_republisher
-  ${towr_ros_EXPORTED_TARGETS}
+  ${fpowr_EXPORTED_TARGETS}
 )
 
 #############

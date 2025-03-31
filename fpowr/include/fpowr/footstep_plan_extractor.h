@@ -1,18 +1,18 @@
-#ifndef TOWR_ROS_FOOTSTEP_PLAN_EXTRACTOR_H_
-#define TOWR_ROS_FOOTSTEP_PLAN_EXTRACTOR_H_
+#ifndef FPOWR_FOOTSTEP_PLAN_EXTRACTOR_H_
+#define FPOWR_FOOTSTEP_PLAN_EXTRACTOR_H_
 
 #include <ros/ros.h>
 #include <towr/variables/spline_holder.h>
-#include <towr_ros/FootstepPlanGoal.h>
-#include <towr_ros/FootstepPlan.h>
-#include <towr_ros/nearest_plane_lookup.h>
-#include <towr_ros/towr_xpp_ee_map.h>
+#include <fpowr/FootstepPlanGoal.h>
+#include <fpowr/FootstepPlan.h>
+#include <fpowr/fpowr_xpp_ee_map.h>
+#include <fpowr/nearest_plane_lookup.h>
 #include <xpp_states/robot_state_cartesian.h>
 #include <xpp_states/endeffectors.h>
 #include <xpp_states/state.h>
 #include <xpp_states/convert.h>
 
-namespace towr {
+namespace fpowr {
 
 using XppVec = std::vector<xpp::RobotStateCartesian>;
 
@@ -29,19 +29,19 @@ XppVec GetTrajectory(const towr::SplineHolder& solution, double dt)
     int n_ee = solution.ee_motion_.size();
     xpp::RobotStateCartesian state(n_ee);
 
-    state.base_.lin = towr::ToXpp(solution.base_linear_->GetPoint(t));
+    state.base_.lin = fpowr::ToXpp(solution.base_linear_->GetPoint(t));
 
     state.base_.ang.q = base_angular.GetQuaternionBaseToWorld(t);
     state.base_.ang.w = base_angular.GetAngularVelocityInWorld(t);
     state.base_.ang.wd = base_angular.GetAngularAccelerationInWorld(t);
 
-    for (int ee_towr = 0; ee_towr < n_ee; ++ee_towr)
+    for (int ee_fpowr = 0; ee_fpowr < n_ee; ++ee_fpowr)
     {
-      int ee_xpp = towr::ToXppEndeffector(n_ee, ee_towr).first;
+      int ee_xpp = fpowr::ToXppEndeffector(n_ee, ee_fpowr).first;
 
-      state.ee_contact_.at(ee_xpp) = solution.phase_durations_.at(ee_towr)->IsContactPhase(t);
-      state.ee_motion_.at(ee_xpp) = towr::ToXpp(solution.ee_motion_.at(ee_towr)->GetPoint(t));
-      state.ee_forces_.at(ee_xpp) = solution.ee_force_.at(ee_towr)->GetPoint(t).p();
+      state.ee_contact_.at(ee_xpp) = solution.phase_durations_.at(ee_fpowr)->IsContactPhase(t);
+      state.ee_motion_.at(ee_xpp) = fpowr::ToXpp(solution.ee_motion_.at(ee_fpowr)->GetPoint(t));
+      state.ee_forces_.at(ee_xpp) = solution.ee_force_.at(ee_fpowr)->GetPoint(t).p();
     }
 
     state.t_global_ = t;
@@ -66,7 +66,7 @@ bool HasEndEffectorContactChanged(const xpp::EndeffectorsContact& a, const xpp::
   return false;
 }
 
-void ExtractFootstepPlan(const towr_ros::FootstepPlanGoalConstPtr &args, const towr::SplineHolder& solution, double time_horizon, towr_ros::FootstepPlan& footstep_plan_msg)
+void ExtractFootstepPlan(const fpowr::FootstepPlanGoalConstPtr &args, const towr::SplineHolder& solution, double time_horizon, fpowr::FootstepPlan& footstep_plan_msg)
 {
   // Create a nearest_plane_lookup object
   // TODO: Are we freeing this anywhere?
@@ -108,7 +108,7 @@ void ExtractFootstepPlan(const towr_ros::FootstepPlanGoalConstPtr &args, const t
   // Populate footstep plan msg
   for (size_t i = 0; i < footstepStates.size(); ++i) {
     const auto& state = footstepStates[i];
-    towr_ros::ContactDatum contact_datum;
+    fpowr::ContactDatum contact_datum;
 
     for (const auto& ee_contact : state.ee_contact_.GetEEsOrdered()) {
       int nearest_plane_index = -1; // Default to -1 if the end effector is in the air
@@ -132,6 +132,6 @@ void ExtractFootstepPlan(const towr_ros::FootstepPlanGoalConstPtr &args, const t
   }
 }
 
-} // namespace towr
+} // namespace fpowr 
 
-#endif /* TOWR_ROS_FOOTSTEP_PLAN_EXTRACTOR_H_ */
+#endif /* FPOWR_FOOTSTEP_PLAN_EXTRACTOR_H_ */
