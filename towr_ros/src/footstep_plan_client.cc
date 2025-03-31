@@ -1,16 +1,15 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
+#include <towr/models/go1/go1_model.h>
 #include <towr_ros/FootstepPlanAction.h>
+#include <towr_ros/InitialGuessArray.h>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
-#include <boost/foreach.hpp>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
-#include <towr/models/go1/go1_model.h>
-#include <towr/models/examples/hyq_model.h>
-#include <towr_ros/InitialGuessArray.h>
+#include <boost/foreach.hpp>
 
 geometry_msgs::Pose createTrunkPose(double x, double y, double z, double w, double ox, double oy, double oz) {
   geometry_msgs::Pose pose;

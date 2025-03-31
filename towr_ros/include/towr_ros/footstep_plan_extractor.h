@@ -6,6 +6,7 @@
 #include <towr_ros/FootstepPlanGoal.h>
 #include <towr_ros/FootstepPlan.h>
 #include <towr_ros/nearest_plane_lookup.h>
+#include <towr_ros/towr_xpp_ee_map.h>
 #include <xpp_states/robot_state_cartesian.h>
 #include <xpp_states/endeffectors.h>
 #include <xpp_states/state.h>

@@ -1,40 +1,15 @@
 #ifndef TOWR_ROS_NEAREST_PLANE_LOOKUP_H_
 #define TOWR_ROS_NEAREST_PLANE_LOOKUP_H_ 
 
-#include <ros/ros.h>
-#include <actionlib/server/simple_action_server.h>
-#include <towr_ros/FootstepPlanAction.h>
-#include <towr/terrain/grid_height_map.h>
-#include <towr/terrain/height_map_from_csv.h>
-#include <towr/nlp_formulation.h>
-#include <towr/initialization/gait_generator.h>
-#include <towr/models/endeffector_mappings.h>
-#include <xpp_states/convert.h>
-#include <ifopt/ipopt_solver.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/Point.h>
-#include <queue>
-#include <set>
-
-#include <cpptrace/from_current.hpp>
-#include <boost/stacktrace.hpp>
-
-#include <ros/ros.h>
-#include <nav_msgs/Path.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <towr/variables/spline_holder.h>
-#include <towr/nlp_formulation.h>
-#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
-#include <tf/transform_datatypes.h>
-#include <grid_map_ros/grid_map_ros.hpp>
-#include <grid_map_msgs/GridMap.h>
-
 #include <boost/geometry.hpp>
 #include <boost/geometry/core/cs.hpp>
 #include <boost/geometry/io/io.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/algorithms/distance.hpp>
+#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
+#include <tf/transform_datatypes.h>
+#include <xpp_states/endeffectors.h>
 
 namespace bg = boost::geometry;
 
