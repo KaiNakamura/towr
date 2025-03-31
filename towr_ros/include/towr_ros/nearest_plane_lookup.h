@@ -60,7 +60,7 @@ namespace towr {
             
             for (const auto& local_point : region.boundary.outer_boundary.points)
             {
-                // convert local point to world point
+                // Convert local point to world point
                 tf::Vector3 local_vec(local_point.x, local_point.y, 0.0);
                 tf::Vector3 world_vec = R * local_vec + tf::Vector3(region.plane_parameters.position.x,
                                                                 region.plane_parameters.position.y,
@@ -77,7 +77,6 @@ namespace towr {
     class NearestPlaneLookup
     {
     protected:
-        // std::vector<convex_plane_decomposition_msgs::PlanarRegion> planarRegions_;
         std::vector<polygon_t> polygons_;
 
     public:
@@ -91,10 +90,10 @@ namespace towr {
             // Ensure position has at least 2 elements
             assert(position.size() >= 2 && "Position vector must have at least 2 elements");
         
-            // convert position to point
+            // Convert position to point
             point_t point(position(0), position(1));
         
-            // find the nearest polygon
+            // Find the nearest polygon
             double min_distance = std::numeric_limits<double>::max();
             int nearest_plane_index = -1;
             for (int i = 0; i < polygons_.size(); ++i)

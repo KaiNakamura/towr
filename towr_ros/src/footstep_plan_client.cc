@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 
   ROS_INFO("Waiting for action server to start.");
   // Wait for the action server to start
-  ac.waitForServer(); // will wait for infinite time
+  ac.waitForServer(); // Will wait for infinite time
 
   ROS_INFO("Action server started, sending goal.");
 
@@ -121,7 +121,6 @@ int main(int argc, char **argv)
 
   // Use Go1KinematicModel to get the start and goal states
   towr::Go1KinematicModel kinematic_model;
-  // towr::HyqKinematicModel kinematic_model;
 
   // Define the start state
   args.start_state = createSingleRigidBodyState(0.5, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);

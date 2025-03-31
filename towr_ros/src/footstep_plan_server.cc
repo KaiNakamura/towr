@@ -137,16 +137,6 @@ public:
 
   towr::SplineHolder execute(const towr_ros::FootstepPlanGoalConstPtr &args)
   {
-    // implement code from:
-    // https://github.com/opsullivan85/RBE550-Group-Project/blob/main/src/quadruped_drake/towr/trunk_mpc.cpp
-    // - replace argv arguments with goal arguments
-    // - replace std::cout with ROS_INFO, etc
-    // - remove unnecessary arguments - gait_type, optimize_gait, etc
-    // - replace formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv); with my implementation (grid_height_map.h)
-    // - ensure the correct robot model is used
-    // - figure out how get output in the correct format (towr_ros::FootstepPlanResult)
-    //   - make another function to extract the footstep planes from the SRB trajectory and terrain
-
     // Publish start and goal poses for visualization
     geometry_msgs::PoseStamped start_pose_msg;
     start_pose_msg.header.stamp = ros::Time::now();
@@ -167,17 +157,13 @@ public:
     // Set up the NLP
     towr::NlpFormulation formulation;
 
-    // terrain
-    // TODO: Change to use grid_height_map.h
-    // formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv);
-    // auto terrain_ptr = boost::make_shared<const convex_plane_decomposition_msgs::PlanarTerrain>(args->terrain);
-    // formulation.terrain_ = std::make_shared<Grid>(*terrain_ptr);
+    // Create terrain
     formulation.terrain_ = std::make_shared<Grid>(args->terrain);
 
     // Kinematic limits and dynamic parameters
     formulation.model_ = towr::RobotModel(towr::RobotModel::Go1);
 
-    // initial position
+    // Initial state
     auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
     nominal_stance_B.at(towr::LF) << args->start_state.LF_ee_point.x, args->start_state.LF_ee_point.y, args->start_state.LF_ee_point.z;
     nominal_stance_B.at(towr::RF) << args->start_state.RF_ee_point.x, args->start_state.RF_ee_point.y, args->start_state.RF_ee_point.z;
@@ -195,12 +181,8 @@ public:
       args->start_state.trunk_pose.orientation.z
     );
     formulation.initial_base_.ang.at(towr::kPos) = q_start.toRotationMatrix().eulerAngles(0, 1, 2);
-    // TODO: are the XYZ or xyz euler angles?
 
-    // TODO: can we set the goal ee positions? Do we want to?
-
-    // desired goal state
-    // formulation.final_base_.lin.at(towr::kPos) << x_final, y_final, -nominal_stance_B.front().z() + z_ground;
+    // Desired goal state
     formulation.final_base_.lin.at(towr::kPos) << args->goal_state.trunk_pose.position.x, args->goal_state.trunk_pose.position.y, args->goal_state.trunk_pose.position.z;
     Eigen::Quaterniond q_goal(
       args->goal_state.trunk_pose.orientation.w,
@@ -209,7 +191,6 @@ public:
       args->goal_state.trunk_pose.orientation.z
     );
     formulation.final_base_.ang.at(towr::kPos) = q_goal.toRotationMatrix().eulerAngles(0, 1, 2);
-    // TODO: are the XYZ or xyz euler angles?
 
     // Parameters defining contact sequence and default durations. We use
     // a GaitGenerator with some predifined gaits
