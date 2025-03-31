@@ -30,15 +30,15 @@ Depending on your computer setup, and what your `DISPLAY` variable is set to, yo
 In one terminal, first:
 
 ```bash
-# cd /home/catkin_ws
-# towr_ros footstep_planner.launch
+cd /home/catkin_ws
+towr_ros footstep_planner.launch
 ```
 
-In another terminal after the above:
+In another terminal, after the above:
 
 ```bash
-# cd /home/catkin_ws
-# rosrun towr_ros footstep_plan_client
+cd /home/catkin_ws
+rosrun towr_ros footstep_plan_client
 ```
 
 # Original towr docs
