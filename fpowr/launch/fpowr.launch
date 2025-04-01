@@ -3,13 +3,13 @@
   <arg name="debug" default="false" doc="run with gdb" />
 
   <!-- Footstep plan server -->
-  <node pkg="towr_ros" type="footstep_plan_server" name="footstep_plan_server" output="screen" />
+  <node pkg="fpowr" type="footstep_plan_server" name="footstep_plan_server" output="screen" />
 
   <!-- Footstep plan client -->
-  <!-- <node pkg="towr_ros" type="footstep_plan_client" name="footstep_plan_client" output="screen" /> -->
+  <!-- <node pkg="fpowr" type="footstep_plan_client" name="footstep_plan_client" output="screen" /> -->
 
   <!-- RViz -->
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find towr_ros)/rviz/footstep_planner.rviz" />
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find fpowr)/rviz/footstep_planner.rviz" />
 
   <!-- Static transform publishers -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 1 odom base_link" />
@@ -19,15 +19,15 @@
 
   <!-- Play rosbag in loop -->
   <node pkg="rosbag" type="play" name="rosbag_play" 
-        args="--loop $(find towr_ros)/bag/perception_stairs.bag
+        args="--loop $(find fpowr)/bag/perception_stairs.bag
               --topics /convex_plane_decomposition_ros/planar_terrain" 
         output="screen" />
 
   <!-- Grid map republisher -->
-  <node pkg="towr_ros" type="grid_map_republisher" name="grid_map_republisher" output="screen" />
+  <node pkg="fpowr" type="grid_map_republisher" name="grid_map_republisher" output="screen" />
 
   <!-- Planar region republisher -->
-  <node pkg="towr_ros" type="planar_region_republisher" name="planar_region_republisher" output="screen" />
+  <node pkg="fpowr" type="planar_region_republisher" name="planar_region_republisher" output="screen" />
 
   <!-- Launch the Go1 URDF visualizer -->
   <param name="go1_rviz_urdf_robot_description" command="$(find xacro)/xacro --inorder '$(find go1_description)/xacro/robot.xacro'

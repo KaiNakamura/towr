@@ -1,20 +1,20 @@
-#ifndef TOWR_ROS_INITIAL_GUESS_EXTRACTOR_H_
-#define TOWR_ROS_INITIAL_GUESS_EXTRACTOR_H_ 
+#ifndef FPOWR_INITIAL_GUESS_EXTRACTOR_H_
+#define FPOWR_INITIAL_GUESS_EXTRACTOR_H_ 
 
 #include <Eigen/Dense>
 #include <functional>
 #include <towr/variables/spline_holder.h>
-#include <towr_ros/InitialGuessArray.h>
+#include <fpowr/InitialGuessArray.h>
 
-namespace towr {
+namespace fpowr {
 
-struct InitialGuess {
+struct InitialGuessStruct {
   double time;
   Eigen::VectorXd state;
   Eigen::VectorXd controls;
 };
 
-void ExtractInitialGuess(const SplineHolder& spline_holder, double t, InitialGuess& initial_guess) {
+void ExtractInitialGuess(const towr::SplineHolder& spline_holder, double t, InitialGuessStruct& initial_guess) {
   initial_guess.time = t;
 
   // Assuming 6D base state (3D position + 3D orientation) and their velocities
@@ -33,12 +33,12 @@ void ExtractInitialGuess(const SplineHolder& spline_holder, double t, InitialGue
   }
 }
 
-void ExtractInitialGuesses(const towr_ros::FootstepPlanGoalConstPtr &args, const SplineHolder& spline_holder, towr_ros::InitialGuessArray& initial_guess_array_msg) {
+void ExtractInitialGuesses(const fpowr::FootstepPlanGoalConstPtr &args, const towr::SplineHolder& spline_holder, fpowr::InitialGuessArray& initial_guess_array_msg) {
   for (auto time : args->state_sample_times) {
-    InitialGuess initial_guess;
+    InitialGuessStruct initial_guess;
     ExtractInitialGuess(spline_holder, time, initial_guess);
 
-    towr_ros::InitialGuess initial_guess_msg;
+    fpowr::InitialGuess initial_guess_msg;
     initial_guess_msg.time = initial_guess.time;
     initial_guess_msg.state = std::vector<double>(initial_guess.state.data(), initial_guess.state.data() + initial_guess.state.size());
     initial_guess_msg.controls = std::vector<double>(initial_guess.controls.data(), initial_guess.controls.data() + initial_guess.controls.size());
@@ -47,6 +47,6 @@ void ExtractInitialGuesses(const towr_ros::FootstepPlanGoalConstPtr &args, const
   }
 }
 
-} // namespace towr
+} // namespace fpowr
 
-#endif /* TOWR_ROS_INITIAL_GUESS_EXTRACTOR_H_ */
+#endif /* FPOWR_INITIAL_GUESS_EXTRACTOR_H_ */

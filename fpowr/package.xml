@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>towr_ros</name>
+  <name>fpowr</name>
   <version>1.4.1</version>
   <description>
     A ROS dependent wrapper for

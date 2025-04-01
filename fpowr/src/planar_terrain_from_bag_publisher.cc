@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 
   // Open the bag file
   rosbag::Bag bag;
-  bag.open("/home/catkin_ws/src/towr/towr_ros/bag/perception_stairs.bag", rosbag::bagmode::Read);
+  bag.open("/home/catkin_ws/src/towr/fpowr/bag/perception_stairs.bag", rosbag::bagmode::Read);
 
   // Create a view for the PlanarTerrain messages
   rosbag::View view(bag, rosbag::TopicQuery("/convex_plane_decomposition_ros/planar_terrain"));
