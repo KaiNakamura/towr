@@ -259,8 +259,8 @@ public:
     solver->SetOption("max_cpu_time", 50);
     solver->SetOption("tol", 1e-4);
     solver->SetOption("print_level", 5); // For debugging
-    // solver->SetOption("linear_solver", "ma57"); // Note: Mumps is default but is slow
-    solver->SetOption("linear_solver", "ma97"); // Note: Mumps is default but is slow
+    solver->SetOption("linear_solver", "ma57"); // Note: Mumps is default but is slow
+    // solver->SetOption("linear_solver", "ma97"); // Note: Mumps is default but is slow
 
     // Snopt
     // auto solver = std::make_shared<ifopt::SnoptSolver>();

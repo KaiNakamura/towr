@@ -56,6 +56,28 @@ int main(int argc, char **argv)
 
   ros::NodeHandle nh;
 
+  // Parse command-line arguments for start and goal states
+  if (argc < 13) {
+    ROS_ERROR("Usage: rosrun towr_ros footstep_plan_client "
+              "<start_x> <start_y> <start_z> <start_roll> <start_pitch> <start_yaw> "
+              "<goal_x> <goal_y> <goal_z> <goal_roll> <goal_pitch> <goal_yaw>");
+    return 1;
+  }
+
+  double start_x = std::stod(argv[1]);
+  double start_y = std::stod(argv[2]);
+  double start_z = std::stod(argv[3]);
+  double start_roll = std::stod(argv[4]);
+  double start_pitch = std::stod(argv[5]);
+  double start_yaw = std::stod(argv[6]);
+
+  double goal_x = std::stod(argv[7]);
+  double goal_y = std::stod(argv[8]);
+  double goal_z = std::stod(argv[9]);
+  double goal_roll = std::stod(argv[10]);
+  double goal_pitch = std::stod(argv[11]);
+  double goal_yaw = std::stod(argv[12]);
+
   // Create publishers for start and goal end-effector positions
   ros::Publisher lf_start_pub = nh.advertise<geometry_msgs::PointStamped>("lf_start", 1);
   ros::Publisher rf_start_pub = nh.advertise<geometry_msgs::PointStamped>("rf_start", 1);
@@ -121,13 +143,22 @@ int main(int argc, char **argv)
 
   // Use Go1KinematicModel to get the start and goal states
   towr::Go1KinematicModel kinematic_model;
-  // towr::HyqKinematicModel kinematic_model;
 
   // Define the start state
-  args.start_state = createSingleRigidBodyState(0.5, 0.0, 0.3, 1.0, 0.0, 0.0, 0.0, kinematic_model);
+  Eigen::Quaterniond start_quat = Eigen::AngleAxisd(start_yaw, Eigen::Vector3d::UnitZ()) *
+                                  Eigen::AngleAxisd(start_pitch, Eigen::Vector3d::UnitY()) *
+                                  Eigen::AngleAxisd(start_roll, Eigen::Vector3d::UnitX());
+  args.start_state = createSingleRigidBodyState(start_x, start_y, start_z,
+                                                start_quat.w(), start_quat.x(), start_quat.y(), start_quat.z(),
+                                                kinematic_model);
 
   // Define the goal state
-  args.goal_state = createSingleRigidBodyState(1.30, 0.0, 0.7, 0.9229966, 0.0, -0.3848082, 0.0, kinematic_model);
+  Eigen::Quaterniond goal_quat = Eigen::AngleAxisd(goal_yaw, Eigen::Vector3d::UnitZ()) *
+                                 Eigen::AngleAxisd(goal_pitch, Eigen::Vector3d::UnitY()) *
+                                 Eigen::AngleAxisd(goal_roll, Eigen::Vector3d::UnitX());
+  args.goal_state = createSingleRigidBodyState(goal_x, goal_y, goal_z,
+                                               goal_quat.w(), goal_quat.x(), goal_quat.y(), goal_quat.z(),
+                                               kinematic_model);
 
   args.state_sample_times = {0.0, 0.25, 0.5, 0.75, 1.0};
 
