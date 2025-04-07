@@ -64,10 +64,6 @@ public:
                 geometry_msgs::Point p;
                 p.x = p_3d.x();
                 p.y = p_3d.y();
-                // Adjust the z-coordinate slightly to align with the terrain
-                // Not sure why this needs to be done, but otherwise it hovers over the terrain too much
-                // Might have to do with the line thickness
-                // p.z = p_3d.z() - 0.02;
                 p.z = p_3d.z();
                 marker.points.push_back(p);
             }

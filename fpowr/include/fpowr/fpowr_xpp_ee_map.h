@@ -28,49 +28,50 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
 /**
- * @file towr_xpp_ee_map.h
+ * @file fpowr_xpp_ee_map.h
  *
  * Mapping information/types between towr and xpp domain for visualization.
  */
-#ifndef TOWR_TOWR_ROS_INCLUDE_TOWR_ROS_TOWR_XPP_EE_MAP_H_
-#define TOWR_TOWR_ROS_INCLUDE_TOWR_ROS_TOWR_XPP_EE_MAP_H_
+#ifndef FPOWR_INCLUDE_FPOWR_XPP_EE_MAP_H_
+#define FPOWR_INCLUDE_FPOWR_XPP_EE_MAP_H_
 
 #include <map>
 #include <towr/models/endeffector_mappings.h>
 #include <xpp_states/endeffector_mappings.h>
+#include <xpp_states/endeffectors.h>
 
 
-namespace towr {
+namespace fpowr {
 
 /** Mapping endeffector IDs */
 static std::map<towr::BipedIDs, xpp::biped::FootIDs> biped_to_xpp_id =
 {
-    {L, xpp::biped::L},
-    {R, xpp::biped::R},
+    {towr::L, xpp::biped::L},
+    {towr::R, xpp::biped::R},
 };
 
 static std::map<towr::QuadrupedIDs, xpp::quad::FootIDs> quad_to_xpp_id =
 {
-    {LF, xpp::quad::LF},
-    {RF, xpp::quad::RF},
-    {LH, xpp::quad::LH},
-    {RH, xpp::quad::RH}
+    {towr::LF, xpp::quad::LF},
+    {towr::RF, xpp::quad::RF},
+    {towr::LH, xpp::quad::LH},
+    {towr::RH, xpp::quad::RH}
 };
 
 
 /** Mapping endeffector names */
 static std::map<towr::BipedIDs, std::string> biped_to_name =
 {
-  {L, "Left" },
-  {R, "Right"}
+  {towr::L, "Left" },
+  {towr::R, "Right"}
 };
 
 static std::map<towr::QuadrupedIDs, std::string> quad_to_name =
 {
-  {LF, "Left-Front" },
-  {RF, "Right-Front"},
-  {LH, "Left-Hind"  },
-  {RH, "Right-Hind" }
+  {towr::LF, "Left-Front" },
+  {towr::RF, "Right-Front"},
+  {towr::LH, "Left-Hind"  },
+  {towr::RH, "Right-Hind" }
 };
 
 
@@ -126,6 +127,6 @@ static xpp::StateLinXd ToXpp(const towr::State& towr)
   return xpp;
 }
 
-} // namespace towr
+} // namespace fpowr 
 
-#endif /* TOWR_TOWR_ROS_INCLUDE_TOWR_ROS_TOWR_XPP_EE_MAP_H_ */
+#endif /* FPOWR_INCLUDE_FPOWR_XPP_EE_MAP_H_ */

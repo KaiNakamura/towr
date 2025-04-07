@@ -1,33 +1,5 @@
-#ifndef TOWR_ROS_NEAREST_PLANE_LOOKUP_H_
-#define TOWR_ROS_NEAREST_PLANE_LOOKUP_H_ 
-
-#include <ros/ros.h>
-#include <actionlib/server/simple_action_server.h>
-#include <towr_ros/FootstepPlanAction.h>
-#include <towr/terrain/grid_height_map.h>
-#include <towr/terrain/height_map_from_csv.h>
-#include <towr/nlp_formulation.h>
-#include <towr/initialization/gait_generator.h>
-#include <towr/models/endeffector_mappings.h>
-#include <xpp_states/convert.h>
-#include <ifopt/ipopt_solver.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/Point.h>
-#include <queue>
-#include <set>
-
-#include <cpptrace/from_current.hpp>
-#include <boost/stacktrace.hpp>
-
-#include <ros/ros.h>
-#include <nav_msgs/Path.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <towr/variables/spline_holder.h>
-#include <towr/nlp_formulation.h>
-#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
-#include <tf/transform_datatypes.h>
-#include <grid_map_ros/grid_map_ros.hpp>
-#include <grid_map_msgs/GridMap.h>
+#ifndef FPOWR_NEAREST_PLANE_LOOKUP_H_
+#define FPOWR_NEAREST_PLANE_LOOKUP_H_ 
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/core/cs.hpp>
@@ -35,13 +7,15 @@
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/algorithms/distance.hpp>
+#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
+#include <tf/transform_datatypes.h>
 
 namespace bg = boost::geometry;
 
 using point_t = bg::model::d2::point_xy<double>;
 using polygon_t = bg::model::polygon<point_t>;
 
-namespace towr {
+namespace fpowr {
 
     std::vector<polygon_t> PlanarRegionsToPolygons(const convex_plane_decomposition_msgs::PlanarTerrain& terrain)
     {
@@ -60,7 +34,7 @@ namespace towr {
             
             for (const auto& local_point : region.boundary.outer_boundary.points)
             {
-                // convert local point to world point
+                // Convert local point to world point
                 tf::Vector3 local_vec(local_point.x, local_point.y, 0.0);
                 tf::Vector3 world_vec = R * local_vec + tf::Vector3(region.plane_parameters.position.x,
                                                                 region.plane_parameters.position.y,
@@ -77,7 +51,6 @@ namespace towr {
     class NearestPlaneLookup
     {
     protected:
-        // std::vector<convex_plane_decomposition_msgs::PlanarRegion> planarRegions_;
         std::vector<polygon_t> polygons_;
 
     public:
@@ -91,10 +64,10 @@ namespace towr {
             // Ensure position has at least 2 elements
             assert(position.size() >= 2 && "Position vector must have at least 2 elements");
         
-            // convert position to point
+            // Convert position to point
             point_t point(position(0), position(1));
         
-            // find the nearest polygon
+            // Find the nearest polygon
             double min_distance = std::numeric_limits<double>::max();
             int nearest_plane_index = -1;
             for (int i = 0; i < polygons_.size(); ++i)
@@ -111,6 +84,6 @@ namespace towr {
         }
     };
 
-} // namespace towr
+} // namespace fpowr
 
-#endif /* TOWR_ROS_NEAREST_PLANE_LOOKUP_H_ */
+#endif /* FPOWR_NEAREST_PLANE_LOOKUP_H_ */

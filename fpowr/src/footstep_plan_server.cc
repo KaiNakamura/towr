@@ -1,36 +1,29 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
-#include <towr_ros/FootstepPlanAction.h>
-#include <towr_ros/nearest_plane_lookup.h>
-#include <towr/terrain/grid_height_map.h>
-#include <towr/terrain/height_map_from_csv.h>
 #include <towr/nlp_formulation.h>
 #include <towr/initialization/gait_generator.h>
 #include <towr/models/endeffector_mappings.h>
-#include <xpp_states/convert.h>
-#include <xpp_msgs/topic_names.h>
+#include <towr/terrain/grid_height_map.h>
+#include <towr/terrain/height_map_from_csv.h>
+#include <towr/variables/spline_holder.h>
+#include <fpowr/FootstepPlanAction.h>
+#include <fpowr/FootstepPlan.h>
+#include <fpowr/footstep_plan_extractor.h>
+#include <fpowr/fpowr_xpp_ee_map.h>
+#include <fpowr/initial_guess_extractor.h>
+#include <fpowr/nearest_plane_lookup.h>
 #include <ifopt/ipopt_solver.h>
 #include <ifopt/snopt_solver.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <nav_msgs/Path.h>
+#include <xpp_states/convert.h>
+#include <xpp_msgs/topic_names.h>
 #include <convex_plane_decomposition_msgs/PlanarTerrain.h>
-#include <tf/transform_datatypes.h>
+#include <nav_msgs/Path.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_msgs/GridMap.h>
-#include <cpptrace/from_current.hpp>
+#include <tf/transform_datatypes.h>
 #include <boost/stacktrace.hpp>
-
-#include <ros/ros.h>
-#include <nav_msgs/Path.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <towr/variables/spline_holder.h>
-#include <towr/nlp_formulation.h>
-#include <convex_plane_decomposition_msgs/PlanarTerrain.h>
-#include <towr_ros/towr_ros_interface.h>
-#include <towr_ros/towr_xpp_ee_map.h>
-#include <towr_ros/initial_guess_extractor.h>
-#include <towr_ros/footstep_plan_extractor.h>
-#include <towr_ros/FootstepPlan.h>
+#include <cpptrace/from_current.hpp>
 
 class FootstepPlanAction
 {
@@ -39,12 +32,12 @@ protected:
   static constexpr double PLAYBACK_SPEED = 0.5; // Playback speed for urdf visualization
 
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<towr_ros::FootstepPlanAction> as_; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
+  actionlib::SimpleActionServer<fpowr::FootstepPlanAction> as_; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
   std::string action_name_;
 
   // Create messages that are used to published feedback/result
-  towr_ros::FootstepPlanFeedback feedback_;
-  towr_ros::FootstepPlanResult result_;
+  fpowr::FootstepPlanFeedback feedback_;
+  fpowr::FootstepPlanResult result_;
 
   // Publishers
   ros::Publisher base_path_pub_;
@@ -126,7 +119,7 @@ public:
   {
     // Match dt of trajectory and playback rate
     ros::Rate rate(100 * PLAYBACK_SPEED);
-    auto trajectory = towr::GetTrajectory(solution, 0.01 * PLAYBACK_SPEED);
+    auto trajectory = fpowr::GetTrajectory(solution, 0.01 * PLAYBACK_SPEED);
 
     for (const auto& state : trajectory)
     {
@@ -136,18 +129,8 @@ public:
     }
   }
 
-  towr::SplineHolder execute(const towr_ros::FootstepPlanGoalConstPtr &args)
+  towr::SplineHolder execute(const fpowr::FootstepPlanGoalConstPtr &args)
   {
-    // implement code from:
-    // https://github.com/opsullivan85/RBE550-Group-Project/blob/main/src/quadruped_drake/towr/trunk_mpc.cpp
-    // - replace argv arguments with goal arguments
-    // - replace std::cout with ROS_INFO, etc
-    // - remove unnecessary arguments - gait_type, optimize_gait, etc
-    // - replace formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv); with my implementation (grid_height_map.h)
-    // - ensure the correct robot model is used
-    // - figure out how get output in the correct format (towr_ros::FootstepPlanResult)
-    //   - make another function to extract the footstep planes from the SRB trajectory and terrain
-
     // Publish start and goal poses for visualization
     geometry_msgs::PoseStamped start_pose_msg;
     start_pose_msg.header.stamp = ros::Time::now();
@@ -168,17 +151,13 @@ public:
     // Set up the NLP
     towr::NlpFormulation formulation;
 
-    // terrain
-    // TODO: Change to use grid_height_map.h
-    // formulation.terrain_ = std::make_shared<HeightMapFromCSV>(grid_csv);
-    // auto terrain_ptr = boost::make_shared<const convex_plane_decomposition_msgs::PlanarTerrain>(args->terrain);
-    // formulation.terrain_ = std::make_shared<Grid>(*terrain_ptr);
+    // Create terrain
     formulation.terrain_ = std::make_shared<Grid>(args->terrain);
 
     // Kinematic limits and dynamic parameters
     formulation.model_ = towr::RobotModel(towr::RobotModel::Go1);
 
-    // initial position
+    // Initial state
     auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
     nominal_stance_B.at(towr::LF) << args->start_state.LF_ee_point.x, args->start_state.LF_ee_point.y, args->start_state.LF_ee_point.z;
     nominal_stance_B.at(towr::RF) << args->start_state.RF_ee_point.x, args->start_state.RF_ee_point.y, args->start_state.RF_ee_point.z;
@@ -196,12 +175,8 @@ public:
       args->start_state.trunk_pose.orientation.z
     );
     formulation.initial_base_.ang.at(towr::kPos) = q_start.toRotationMatrix().eulerAngles(0, 1, 2);
-    // TODO: are the XYZ or xyz euler angles?
 
-    // TODO: can we set the goal ee positions? Do we want to?
-
-    // desired goal state
-    // formulation.final_base_.lin.at(towr::kPos) << x_final, y_final, -nominal_stance_B.front().z() + z_ground;
+    // Desired goal state
     formulation.final_base_.lin.at(towr::kPos) << args->goal_state.trunk_pose.position.x, args->goal_state.trunk_pose.position.y, args->goal_state.trunk_pose.position.z;
     Eigen::Quaterniond q_goal(
       args->goal_state.trunk_pose.orientation.w,
@@ -210,7 +185,6 @@ public:
       args->goal_state.trunk_pose.orientation.z
     );
     formulation.final_base_.ang.at(towr::kPos) = q_goal.toRotationMatrix().eulerAngles(0, 1, 2);
-    // TODO: are the XYZ or xyz euler angles?
 
     // Parameters defining contact sequence and default durations. We use
     // a GaitGenerator with some predifined gaits
@@ -293,10 +267,10 @@ public:
     return solution;
   }
 
-  void executeCB(const towr_ros::FootstepPlanGoalConstPtr &args)
+  void executeCB(const fpowr::FootstepPlanGoalConstPtr &args)
   {
     ROS_INFO("%s: Executing", action_name_.c_str());
-    result_ = towr_ros::FootstepPlanResult(); // Initialize the result
+    result_ = fpowr::FootstepPlanResult(); // Initialize the result
     towr::SplineHolder solution;
 
     CPPTRACE_TRY {
@@ -310,8 +284,8 @@ public:
     }
 
     // With the solution, extract initial guesses and footstep plan
-    towr::ExtractInitialGuesses(args, solution, result_.initial_guesses);
-    towr::ExtractFootstepPlan(args, solution, TIME_HORIZON, result_.footstep_plan);
+    fpowr::ExtractInitialGuesses(args, solution, result_.initial_guesses);
+    fpowr::ExtractFootstepPlan(args, solution, TIME_HORIZON, result_.footstep_plan);
 
     // Set the action state to succeeded
     as_.setSucceeded(result_);
