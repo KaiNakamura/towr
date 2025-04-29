@@ -24,7 +24,7 @@ There are ways to do the same thing using only Docker Compose files, but you'll 
 
 ```bash
 cd /home/catkin_ws
-catkin build towr_ros
+catkin build fpowr
 ```
 
 #### Run the project
@@ -35,14 +35,14 @@ In one terminal, first:
 
 ```bash
 cd /home/catkin_ws
-roslaunch towr_ros footstep_planner.launch
+roslaunch fpowr fpowr.launch
 ```
 
 In another terminal, after the above:
 
 ```bash
 cd /home/catkin_ws
-rosrun towr_ros footstep_plan_client
+rosrun fpowr footstep_plan_client
 ```
 
 ## Original towr docs

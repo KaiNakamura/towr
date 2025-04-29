@@ -230,7 +230,7 @@ public:
     solver->SetOption("acceptable_iter", 15);
     solver->SetOption("acceptable_tol", 1e-3);
     solver->SetOption("max_iter", 500);
-    solver->SetOption("max_cpu_time", 50);
+    solver->SetOption("max_cpu_time", 5);
     solver->SetOption("tol", 1e-4);
     solver->SetOption("print_level", 5); // For debugging
     solver->SetOption("linear_solver", "ma57"); // Note: Mumps is default but is slow

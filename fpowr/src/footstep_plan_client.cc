@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
   // Parse command-line arguments for start and goal states
   if (argc < 13) {
-    ROS_ERROR("Usage: rosrun towr_ros footstep_plan_client "
+    ROS_ERROR("Usage: rosrun fpowr footstep_plan_client "
               "<start_x> <start_y> <start_z> <start_roll> <start_pitch> <start_yaw> "
               "<goal_x> <goal_y> <goal_z> <goal_roll> <goal_pitch> <goal_yaw>");
     return 1;
@@ -108,17 +108,27 @@ int main(int argc, char **argv)
   rosbag::Bag bag;
   bag.open("/home/catkin_ws/src/towr/fpowr/bag/perception_stairs.bag", rosbag::bagmode::Read);
 
-  // Create a view for the PlanarTerrain messages
-  rosbag::View view(bag, rosbag::TopicQuery("/convex_plane_decomposition_ros/planar_terrain"));
+  // TODO: make this a parameter
+  double target_time_sec = 13.0;
 
-  // Get the first PlanarTerrain message
+  // First create a full view to get bag start time
+  rosbag::View full_view(bag, rosbag::TopicQuery("/convex_plane_decomposition_ros/planar_terrain"));
+  ros::Time target_time = full_view.getBeginTime() + ros::Duration(target_time_sec);
+  
+  // Now create a filtered view starting from the target time
+  rosbag::View view(bag,
+                    rosbag::TopicQuery("/convex_plane_decomposition_ros/planar_terrain"),
+                    target_time,
+                    ros::TIME_MAX);
+
   convex_plane_decomposition_msgs::PlanarTerrain::ConstPtr terrain_msg;
   BOOST_FOREACH(rosbag::MessageInstance const m, view)
   {
-    terrain_msg = m.instantiate<convex_plane_decomposition_msgs::PlanarTerrain>();
-    if (terrain_msg != nullptr)
-    {
-      break;
+    if (m.getTime() >= target_time) {
+      terrain_msg = m.instantiate<convex_plane_decomposition_msgs::PlanarTerrain>();
+      if (terrain_msg != nullptr) {
+        break;
+      }
     }
   }
 

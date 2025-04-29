@@ -32,7 +32,7 @@ namespace towr
 
       // optimistic values. Really for stairclimbing we need a toroidal segment for the foot bounding areas
       // we are running into issues where it isn't able to step on the ground when it gets angled enough
-      max_dev_from_nominal_ << 0.25, 0.20, 0.10;
+      max_dev_from_nominal_ << 0.16, 0.12, 0.06;
     }
   };
 

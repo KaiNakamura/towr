@@ -18,9 +18,9 @@
   <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_base_to_go1_des" args="0 0 0 0 0 0 1 base go1_des" />
 
   <!-- Play rosbag in loop -->
+  <!-- TODO make the start a parameter -->
   <node pkg="rosbag" type="play" name="rosbag_play" 
-        args="--loop $(find fpowr)/bag/perception_stairs.bag
-              --topics /convex_plane_decomposition_ros/planar_terrain" 
+        args="--start 13 --duration 0.1 --loop $(find fpowr)/bag/perception_stairs.bag --topics /convex_plane_decomposition_ros/planar_terrain" 
         output="screen" />
 
   <!-- Grid map republisher -->

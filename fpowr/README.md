@@ -14,7 +14,7 @@ The terrain being passed into the server is of type `convex_plane_decomposition_
 
 #### Extracting the footstep plan
 
-The footstep plan is extracted in `fpowr\fpowr\include\fpowr\footstep_plan_extractor.h`. This discretizes the robot state and checks if the contact state changed at every time step. For each time the contact state changes, it looks up which convex region each foot is nearest to (or -1 if it is in the air). This forms the basis for the `towr_ros/FootstepPlan` that ultimately gets sent back to the client.
+The footstep plan is extracted in `fpowr\fpowr\include\fpowr\footstep_plan_extractor.h`. This discretizes the robot state and checks if the contact state changed at every time step. For each time the contact state changes, it looks up which convex region each foot is nearest to (or -1 if it is in the air). This forms the basis for the `fpowr/FootstepPlan` that ultimately gets sent back to the client.
 
 To check for the nearest convex region, `footstep_plan_extractor.h` uses `fpowr\fpowr\include\fpowr\nearest_plane_lookup.h`. This leverages `boost::geometry` to check the distances from a point to every one of the convex planes, returning the closest plane. This is not a terribly efficent approach but it was super fast to implement and has worked well for our test cases. A more efficent approach could be benefitial for enviornments with more planes or longer trajectories.
 
